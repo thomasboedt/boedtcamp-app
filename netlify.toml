@@ -1,0 +1,22 @@
+[build]
+  base = "."
+  command = "npm run build --workspace=web"
+  publish = "web/dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  # Prisma's generated client ships a portable WASM query engine (used because the
+  # driver adapter in server/src/db.ts is active) rather than a native binary — make
+  # sure it's included in the function zip even if auto-detection misses it.
+  included_files = ["node_modules/.prisma/client/**"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

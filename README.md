@@ -11,19 +11,25 @@ trainer zelf instelt.
 
 ## Stack
 
-- **`server/`** — Node/Express (TypeScript) + Prisma + SQLite. Alle data (klanten, programma's,
-  sessies, set-per-set historiek, oefeningenbibliotheek) leeft hier.
+- **`server/`** — Node/Express (TypeScript) + Prisma + PostgreSQL, via a driver adapter
+  (`@prisma/adapter-pg`) instead of Prisma's native query-engine binary — this keeps the client
+  portable between a normal Node process and a Netlify Function (no OS-specific binary to bundle).
+  Alle data (klanten, programma's, sessies, set-per-set historiek, oefeningenbibliotheek) leeft hier.
 - **`web/`** — React (Vite). Trainer-dashboard en klant-app als twee apart ingelogde
   omgevingen, gebouwd met de BoedtCamp-designtokens/-componenten uit `project/_ds`.
+- **`netlify/functions/api.ts`** — de hele Express-API verpakt als één Netlify Function
+  (via `serverless-http`), zodat frontend + API samen als één site deployen.
 
-## Snel starten
+## Snel starten (lokaal)
+
+Vereist een lokale PostgreSQL-server (bv. `apt install postgresql` of Docker).
 
 ```bash
-npm install                 # installeert server + web workspaces
-cp server/.env.example server/.env   # pas gerust de standaardwaarden aan
-npm run db:migrate          # maakt de SQLite-database + schema aan
-npm run db:seed             # 1 trainer-account + 3 voorbeeldklanten met eigen pincode
-npm run dev                 # start server (localhost:4000) + web (localhost:5173)
+npm install                          # installeert server + web workspaces
+cp server/.env.example server/.env   # zet DATABASE_URL naar je lokale Postgres
+npm run db:migrate                   # maakt schema aan
+npm run db:seed                      # 1 trainer-account + 3 voorbeeldklanten met eigen pincode
+npm run dev                          # start server (localhost:4000) + web (localhost:5173)
 ```
 
 Open <http://localhost:5173>.
@@ -61,6 +67,35 @@ in het dashboard.
 - **Klant-app**: trainingsoverzicht, sets loggen met vooringevulde vorige waarde, reps per set
   aanpassen, een set verwijderen, rusttimer, en afronden met zwaarte-score/opmerking/pijnmelding.
 
+## Deployen naar Netlify
+
+Frontend en API deployen samen als één Netlify-site: statische assets uit `web/dist`, de
+Express-API als één Netlify Function, `/api/*` wordt er via een redirect naartoe gestuurd
+(zie `netlify.toml`). Lokaal getest tegen een echte Postgres-database (zie hierboven) —
+de stap hieronder is puur het echte Netlify-account koppelen en de omgeving instellen.
+
+```bash
+npx netlify-cli login                        # of: netlify login --request "…" voor een agent/headless flow
+npx netlify-cli init                         # koppel of maak de site; kies "server"/"web" niet als losse app —
+                                               # de root netlify.toml stuurt de build aan
+npx netlify-cli db                            # provisioneert een production-ready Postgres (Netlify DB / Neon)
+                                               # en zet DATABASE_URL automatisch als site env var
+netlify env:set JWT_SECRET "<genereer iets willekeurigs>"
+netlify env:set TRAINER_USERNAME "tom"
+netlify env:set TRAINER_PASSWORD "<kies een sterk wachtwoord>"
+
+# schema + seed tegen de productie-database (éénmalig, en na elke schemawijziging):
+DATABASE_URL="$(netlify env:get DATABASE_URL)" npm run db:migrate -w server -- deploy
+DATABASE_URL="$(netlify env:get DATABASE_URL)" npm run db:seed -w server
+
+npx netlify-cli deploy --prod
+```
+
+Als je zelf al een Netlify-account/CLI-sessie hebt, kan je ook gewoon de repo koppelen via de
+Netlify-UI (Import from Git) — `netlify.toml` bevat alle build-instellingen, dus dat werkt zonder
+verdere configuratie zodra `DATABASE_URL`, `JWT_SECRET`, `TRAINER_USERNAME` en `TRAINER_PASSWORD`
+als environment variables staan.
+
 ## Bewuste scope-keuzes
 
 Om dit binnen één implementatieronde af te leveren zijn een paar dingen bewust vereenvoudigd
@@ -83,8 +118,13 @@ t.o.v. het prototype:
 server/
   prisma/schema.prisma   Trainer, Client, ProgramDay, ProgramItem, Session, SetLog, LibraryExercise
   prisma/seed.ts         trainer-account + 3 klanten + hun programma's + bibliotheek
+  src/app.ts             de geconfigureerde Express-app (routes + middleware, geen .listen())
+  src/index.ts           lokale dev-entrypoint (app.listen op :4000)
+  src/db.ts              Prisma Client via de pg-driver-adapter
   src/routes/            auth, clients, program, dashboard, library, clientApp
   src/lib/schedule.ts    pool-rotatie + roeiopbouw-formules (client-app gebruikt dit)
+netlify/functions/api.ts de Express-app verpakt als één Netlify Function (serverless-http)
+netlify.toml            build/publish/functions-config + /api/* en SPA-redirects
 web/
   src/ds/                Button/Badge/Card, 1:1 overgenomen uit project/_ds/_ds_bundle.js
   src/styles/tokens.css  kleur/typografie/spacing-tokens uit project/_ds
