@@ -1,0 +1,15 @@
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#eef1f4;
+  font-family:'Poppins',system-ui,sans-serif;
+  color:var(--text-body);
+}
+a{color:#1f5dc4;text-decoration:none}
+a:hover{color:#2c9dfd}
+input,button,textarea,select{font-family:'Poppins',system-ui,sans-serif}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+button{font-family:inherit}
+.bcs::-webkit-scrollbar{width:0;height:0}
+.bcs{scrollbar-width:none}

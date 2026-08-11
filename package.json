@@ -1,0 +1,17 @@
+{
+  "name": "boedtcamp-krachttraining",
+  "private": true,
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,magenta \"npm run dev -w server\" \"npm run dev -w web\"",
+    "db:migrate": "npm run db:migrate -w server",
+    "db:seed": "npm run db:seed -w server",
+    "build": "npm run build -w server && npm run build -w web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

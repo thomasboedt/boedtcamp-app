@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// The trainer/coach account that manages every client's program.
+model Trainer {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+// A client (trainee). Access to their own data is gated by a unique 6-digit PIN
+// that the trainer sets/rotates from the trainer dashboard.
+model Client {
+  id         String   @id @default(uuid())
+  naam       String
+  geboortejaar Int?
+  meta       String? // free text e.g. "52 jaar · 1-op-1 · sinds maart 2026"
+  focus      String? // free text e.g. "Kracht opbouwen, rechterknie ontzien"
+  freq       String? // free text e.g. "2-3x per week"
+  pinHash    String   @unique // bcrypt hash of the 6-digit pin
+  pinLookup  String   @unique // sha256 hex of the plain pin, used only to find the matching client fast (login is O(1) instead of scanning+bcrypt-comparing every client)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  days       ProgramDay[]
+  sessions   Session[]
+}
+
+// One training day in a client's schedule (e.g. "Training 1 - Full body A").
+model ProgramDay {
+  id        String   @id @default(uuid())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String
+  volgorde  Int // display order / day number
+  titel     String
+  rotate    Boolean  @default(false) // auto-rotate core & mobility exercises weekly from the pool
+  rowing    Boolean  @default(false) // include the progressive rowing block
+  rowBase   Float    @default(10) // starting minutes
+  rowPct    Float    @default(10) // % increase per week
+  rowWeek   Int      @default(0) // current week index (0-based)
+  poolShift Int      @default(0) // bumped by "Rouleer pool" to force a new weekly pool selection
+
+  items     ProgramItem[]
+  sessions  Session[]
+
+  @@unique([clientId, volgorde])
+}
+
+// An exercise placed in a program day, with the client's current targets.
+model ProgramItem {
+  id           String   @id @default(uuid())
+  day          ProgramDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  dayId        String
+  volgorde     Int // order within the day
+  naam         String
+  block        String // warmup | main | cooldown
+  type         String @default("reps") // reps | time
+  unit         String? // kg | sec | min | band | null (bodyweight)
+  sets         Int    @default(3)
+  repsOfSec    Int    @default(10) // target reps, or target seconds/minutes depending on type/unit
+  doelgewicht  Float  @default(0)
+  restSec      Int    @default(90)
+  videoUrl     String?
+  notitie      String? // technique tip shown to the client
+  bron         String  @default("eigen") // eigen | free-exercise-db | wger
+  createdAt    DateTime @default(now())
+
+  setLogs      SetLog[]
+
+  @@unique([dayId, volgorde])
+}
+
+// One executed training session by a client.
+model Session {
+  id          String   @id @default(uuid())
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    String
+  day         ProgramDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  dayId       String
+  weekNr      Int      @default(1)
+  gestartOp   DateTime @default(now())
+  afgerondOp  DateTime?
+  rpe         Int?     // 0-4, "Licht".."Max"
+  opmerking   String?
+  pijn        Boolean  @default(false)
+
+  setLogs     SetLog[]
+
+  @@index([clientId])
+}
+
+// The historical record: what the client actually did, per set.
+// This is the core of the "historiek van alle oefeningen, sets, reps en gewichten".
+model SetLog {
+  id            String   @id @default(uuid())
+  session       Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId     String
+  programItem   ProgramItem? @relation(fields: [programItemId], references: [id], onDelete: SetNull)
+  programItemId String?
+  oefeningNaam  String // snapshotted so history survives program edits/deletes
+  setNr         Int
+  reps          Int?
+  gewichtKg     Float?
+  seconden      Int?
+  unit          String
+  afgevinkt     Boolean  @default(false)
+  loggedAt      DateTime @default(now())
+
+  @@unique([sessionId, oefeningNaam, setNr])
+  @@index([sessionId])
+  @@index([programItemId])
+  @@index([oefeningNaam])
+}
+
+// Curated exercise library (seeded once from open sources: free-exercise-db + wger),
+// searchable by the trainer when adding exercises to a program.
+model LibraryExercise {
+  id          String @id @default(uuid())
+  naam        String
+  primaireSpier String
+  materiaal   String?
+  categorie   String? // raw source category
+  doel        String  // mobility | stability | core | strength | power | cardio
+  type        String  @default("reps") // reps | time
+  afbeelding  String?
+  bron        String // free-exercise-db | wger
+  bronId      String
+
+  @@unique([bron, bronId])
+  @@index([primaireSpier])
+  @@index([doel])
+}
