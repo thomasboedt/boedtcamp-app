@@ -7,6 +7,7 @@ import programRoutes from "./routes/program";
 import libraryRoutes from "./routes/library";
 import dashboardRoutes from "./routes/dashboard";
 import clientAppRoutes from "./routes/clientApp";
+import adminRoutes from "./routes/admin";
 
 export const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/trainer", programRoutes);
 app.use("/api/trainer", libraryRoutes);
 app.use("/api/trainer", dashboardRoutes);
 app.use("/api/client", clientAppRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
