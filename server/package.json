@@ -16,6 +16,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@netlify/database": "^1.1.0",
     "@prisma/adapter-pg": "^5.22.0",
     "@prisma/client": "^5.20.0",
     "bcryptjs": "^2.4.3",
