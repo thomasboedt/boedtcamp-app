@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/boedtcamp-design-system-d1ef3782-8b9b-4a00-b0c5-576bc6a2a4c3/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/boedtcamp-design-system-d1ef3782-8b9b-4a00-b0c5-576bc6a2a4c3/tokens/colors.css">
+<link rel="stylesheet" href="_ds/boedtcamp-design-system-d1ef3782-8b9b-4a00-b0c5-576bc6a2a4c3/tokens/typography.css">
+<link rel="stylesheet" href="_ds/boedtcamp-design-system-d1ef3782-8b9b-4a00-b0c5-576bc6a2a4c3/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/boedtcamp-design-system-d1ef3782-8b9b-4a00-b0c5-576bc6a2a4c3/styles.css">
+<script src="_ds/boedtcamp-design-system-d1ef3782-8b9b-4a00-b0c5-576bc6a2a4c3/_ds_bundle.js"></script>
+<style>
+body{margin:0;background:#eef1f4}
+*{box-sizing:border-box}
+a{color:#1f5dc4;text-decoration:none}
+a:hover{color:#2c9dfd}
+input,button,textarea{font-family:'Poppins',system-ui,sans-serif}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+.bcs::-webkit-scrollbar{width:0;height:0}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#eef1f4;font-family:'Poppins',system-ui,sans-serif;color:#454e58">
+
+  <div style="position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:24px;padding:14px 28px;background:#000;color:#fff">
+    <img src="assets/lockup-color.svg" alt="BoedtCamp" style="height:30px;width:auto;display:block">
+    <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94">Krachttraining · prototype</div>
+    <div style="flex:1"></div>
+    <div style="display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.08);border-radius:999px">
+      <button onClick="{{ goClient }}" style="{{ tabClientStyle }}">Klant-app</button>
+      <button onClick="{{ goTrainer }}" style="{{ tabTrainerStyle }}">Trainer</button>
+      <button onClick="{{ goData }}" style="{{ tabDataStyle }}">Data &amp; API</button>
+    </div>
+    <button onClick="{{ resetAll }}" style="padding:8px 14px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#c7c9cc;border-radius:999px;font-size:12px;cursor:pointer">Reset demo</button>
+  </div>
+
+  <sc-if value="{{ isClient }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;gap:36px;align-items:flex-start;justify-content:center;padding:36px 28px 64px;flex-wrap:wrap">
+
+    <div style="width:300px;display:flex;flex-direction:column;gap:16px;padding-top:10px">
+      <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:26px;color:#000;line-height:1.1">Klant-app</div>
+      <p style="margin:0;font-size:13.5px;line-height:1.6;color:#7c8794;text-wrap:pretty">De klant opent het schema dat jij voor haar of hem klaarzette, ziet per oefening het doel én wat er vorige keer stond, past het uitgevoerde gewicht aan en start de rusttimer zelf. Wissel van klant in het coach-dashboard om een ander schema te zien.</p>
+      <div style="height:1px;background:#e8ebee"></div>
+      <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94">Variant trainingsscherm</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onClick="{{ setVarA }}" style="{{ varAStyle }}">
+          <span style="font-weight:600;font-size:13.5px">A · Compacte lijst</span>
+          <span style="display:block;font-size:12px;color:#7c8794;margin-top:3px">Sets als rijen, veel oefeningen in beeld</span>
+        </button>
+        <button onClick="{{ setVarB }}" style="{{ varBStyle }}">
+          <span style="font-weight:600;font-size:13.5px">B · Groot &amp; rustig (50+)</span>
+          <span style="display:block;font-size:12px;color:#7c8794;margin-top:3px">Eén set per blok, ± knoppen van 48px</span>
+        </button>
+      </div>
+      <div style="height:1px;background:#e8ebee"></div>
+      <div style="font-size:12px;line-height:1.7;color:#7c8794">
+        <div style="color:#454e58;font-weight:600;margin-bottom:6px">Probeer</div>
+        Tik een oefening open · pas het gewicht aan · vink de set af · start de rust · rond de training af en geef feedback.
+      </div>
+    </div>
+
+    <div style="width:390px;height:844px;background:#000;border-radius:46px;padding:11px;box-shadow:0 4px 10px rgba(10,14,20,.10),0 26px 60px rgba(10,14,20,.28);flex:none">
+      <div style="position:relative;width:100%;height:100%;background:#fff;border-radius:36px;overflow:hidden;display:flex;flex-direction:column">
+
+        <div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:12px 24px 4px;font-size:13px;font-weight:600;color:#000">
+          <span>9:41</span>
+          <span style="display:flex;gap:5px;align-items:center">
+            <span style="width:17px;height:10px;border:1.5px solid #000;border-radius:3px;display:inline-block"></span>
+          </span>
+        </div>
+
+        <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+        <div class="bcs" style="flex:1;overflow-y:auto">
+          <div style="padding:18px 20px 0">
+            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94">{{ todayLabel }}</div>
+            <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:28px;color:#000;line-height:1.1;margin-top:4px">Hallo {{ clientFirst }}</div>
+          </div>
+
+          <div style="margin:18px 20px 0;border-radius:16px;background:#000 url(assets/background-dark-chevron.png) right center/cover no-repeat;color:#fff;padding:20px;position:relative;overflow:hidden">
+            <div style="position:relative">
+              <div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#2c9dfd">Vandaag · week {{ weekNo }}</div>
+              <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:24px;margin-top:6px">{{ dayTitle }}</div>
+              <div style="font-size:13px;color:#c7c9cc;margin-top:6px">{{ dayMeta }}</div>
+              <div style="margin-top:16px">
+                <x-import component-from-global-scope="BoedtCampDesignSystem_d1ef37.Button" variant="primary" size="lg" on-click="{{ startWorkout }}" dc-props="{{ ctaFull }}" hint-size="100%,54px">Start training</x-import>
+              </div>
+            </div>
+          </div>
+
+          <div class="bcs" style="display:flex;gap:8px;padding:16px 20px 0;overflow-x:auto">
+            <sc-for list="{{ dayTabs }}" as="t" hint-placeholder-count="3">
+              <button onClick="{{ t.pick }}" style="{{ t.style }}">{{ t.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="padding:22px 20px 0">
+            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94;margin-bottom:10px">Deze week</div>
+            <div style="display:flex;gap:6px">
+              <sc-for list="{{ weekDots }}" as="d" hint-placeholder-count="7">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+                  <div style="font-size:11px;color:#8b8f94">{{ d.letter }}</div>
+                  <div style="{{ d.dotStyle }}">{{ d.mark }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="padding:24px 20px 0">
+            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94;margin-bottom:10px">Laatste sessies</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ recentSessions }}" as="s" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #e8ebee;border-radius:12px">
+                  <div style="width:38px;height:38px;border-radius:10px;background:#f4f6f8;display:flex;align-items:center;justify-content:center;font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:14px;color:#1f5dc4">{{ s.tag }}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:14px;font-weight:600;color:#000">{{ s.title }}</div>
+                    <div style="font-size:12px;color:#8b8f94">{{ s.sub }}</div>
+                  </div>
+                  <div style="font-size:12px;color:#8b8f94">{{ s.when }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="height:28px"></div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ isWorkout }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;padding:8px 20px 12px;border-bottom:1px solid #e8ebee">
+          <div style="display:flex;align-items:center;gap:12px">
+            <button onClick="{{ goHome }}" style="width:34px;height:34px;border:1px solid #e8ebee;background:#fff;border-radius:10px;font-size:15px;cursor:pointer;color:#454e58">‹</button>
+            <div style="flex:1;min-width:0">
+              <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:17px;color:#000">{{ dayTitle }}</div>
+              <div style="font-size:11.5px;color:#8b8f94">{{ progressLabel }}</div>
+            </div>
+            <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:17px;color:#1f5dc4">{{ progressPct }}</div>
+          </div>
+          <div style="height:6px;border-radius:999px;background:#e8ebee;margin-top:10px;overflow:hidden">
+            <div style="{{ progressBarStyle }}"></div>
+          </div>
+        </div>
+
+        <div class="bcs" style="flex:1;overflow-y:auto;padding:14px 16px 140px;background:#f4f6f8">
+          <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="3">
+            <div style="margin-bottom:16px">
+              <div style="display:flex;align-items:center;gap:8px;padding:0 4px 8px">
+                <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94">{{ b.title }}</div>
+                <div style="flex:1;height:1px;background:#e8ebee"></div>
+                <div style="font-size:11px;color:#c2c8cf">{{ b.count }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ b.exercises }}" as="ex" hint-placeholder-count="3">
+                  <div style="{{ ex.cardStyle }}">
+                    <button onClick="{{ ex.toggle }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px;background:transparent;border:0;text-align:left;cursor:pointer">
+                      <div style="{{ ex.ringStyle }}">{{ ex.ringLabel }}</div>
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:15px;font-weight:600;color:#000;line-height:1.25">{{ ex.name }}</div>
+                        <div style="font-size:12.5px;color:#8b8f94;margin-top:2px">{{ ex.meta }}</div>
+                      </div>
+                      <div style="{{ ex.chevStyle }}">›</div>
+                    </button>
+
+                    <sc-if value="{{ ex.isOpen }}" hint-placeholder-val="{{ false }}">
+                      <div style="padding:0 14px 14px">
+                        <sc-if value="{{ ex.note }}" hint-placeholder-val="{{ false }}">
+                          <div style="font-size:12.5px;line-height:1.5;color:#7c8794;background:#f4f6f8;border-radius:10px;padding:10px 12px;margin-bottom:12px">{{ ex.note }}</div>
+                        </sc-if>
+                        <a href="{{ ex.video }}" target="_blank" rel="noreferrer" style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1.5px solid #e8ebee;border-radius:10px;margin-bottom:12px;text-decoration:none">
+                          <span style="flex:none;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2c9dfd,#1f5dc4);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px">▶</span>
+                          <span style="font-size:13.5px;font-weight:600;color:#1f5dc4">Bekijk de techniekvideo</span>
+                        </a>
+
+                        <sc-if value="{{ isVarA }}" hint-placeholder-val="{{ true }}">
+                          <div style="display:flex;flex-direction:column;gap:8px">
+                            <sc-for list="{{ ex.sets }}" as="s" hint-placeholder-count="3">
+                              <div style="display:flex;align-items:center;gap:8px">
+                                <div style="width:40px;flex:none;font-size:12px;color:#8b8f94">{{ s.label }}</div>
+                                <div style="{{ s.repsColStyle }}">
+                                  <div style="display:flex;align-items:center;gap:4px;border:1.5px solid #e8ebee;border-radius:10px;padding:6px 8px;background:#fff">
+                                    <input type="number" value="{{ s.reps }}" onChange="{{ s.onReps }}" style="width:42px;flex:none;border:0;outline:none;font-size:15px;font-weight:600;color:#000;background:transparent">
+                                    <span style="font-size:11px;color:#8b8f94;flex:none">{{ s.repsUnit }}</span>
+                                  </div>
+                                  <div style="font-size:11.5px;color:#c2c8cf;margin-top:3px;padding-left:2px">doel {{ s.target }}</div>
+                                </div>
+                                <div style="flex:1;min-width:0">
+                                  <div style="display:flex;align-items:center;gap:6px;border:1.5px solid #e8ebee;border-radius:10px;padding:6px 10px;background:#fff">
+                                    <input type="number" step="{{ s.step }}" value="{{ s.value }}" onChange="{{ s.onChange }}" style="width:100%;border:0;outline:none;font-size:16px;font-weight:600;color:#000;background:transparent">
+                                    <span style="font-size:12px;color:#8b8f94;flex:none">{{ s.unit }}</span>
+                                  </div>
+                                  <div style="font-size:11.5px;color:#c2c8cf;margin-top:3px;padding-left:2px">{{ s.prevLabel }}</div>
+                                </div>
+                                <button onClick="{{ s.onToggle }}" style="{{ s.checkStyle }}">✓</button>
+                                <button onClick="{{ s.onRemove }}" title="Set verwijderen" style="{{ s.removeStyle }}">✕</button>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+
+                        <sc-if value="{{ isVarB }}" hint-placeholder-val="{{ false }}">
+                          <div style="display:flex;flex-direction:column;gap:12px">
+                            <sc-for list="{{ ex.sets }}" as="s" hint-placeholder-count="3">
+                              <div style="{{ s.blockStyle }}">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+                                  <div style="font-size:14px;font-weight:600;color:#000">{{ s.label }}</div>
+                                  <button onClick="{{ s.onRemove }}" style="{{ s.removeStyleBig }}">✕ Set verwijderen</button>
+                                </div>
+                                <div style="{{ s.repsBlockStyle }}">
+                                  <div style="font-size:13px;color:#7c8794">Herhalingen <span style="color:#c2c8cf">· doel {{ s.target }}</span></div>
+                                  <div style="display:flex;align-items:center;gap:8px">
+                                    <button onClick="{{ s.onRepsDec }}" style="width:44px;height:44px;flex:none;border:1.5px solid #c2c8cf;background:#fff;border-radius:12px;font-size:20px;color:#454e58;cursor:pointer">−</button>
+                                    <input type="number" value="{{ s.reps }}" onChange="{{ s.onReps }}" style="width:56px;border:0;outline:none;text-align:center;font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:22px;color:#000;background:transparent">
+                                    <button onClick="{{ s.onRepsInc }}" style="width:44px;height:44px;flex:none;border:1.5px solid #c2c8cf;background:#fff;border-radius:12px;font-size:20px;color:#454e58;cursor:pointer">+</button>
+                                  </div>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:10px">
+                                  <button onClick="{{ s.onDec }}" style="width:48px;height:48px;flex:none;border:1.5px solid #c2c8cf;background:#fff;border-radius:14px;font-size:22px;color:#454e58;cursor:pointer">−</button>
+                                  <div style="flex:1;min-width:0;text-align:center">
+                                    <input type="number" step="{{ s.step }}" value="{{ s.value }}" onChange="{{ s.onChange }}" style="width:100%;border:0;outline:none;text-align:center;font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:30px;color:#000;background:transparent">
+                                    <div style="font-size:12px;color:#8b8f94;margin-top:-2px">{{ s.unit }}</div>
+                                  </div>
+                                  <button onClick="{{ s.onInc }}" style="width:48px;height:48px;flex:none;border:1.5px solid #c2c8cf;background:#fff;border-radius:14px;font-size:22px;color:#454e58;cursor:pointer">+</button>
+                                </div>
+                                <div style="font-size:13px;color:#8b8f94;text-align:center;margin-top:8px">{{ s.prevLabel }}</div>
+                                <button onClick="{{ s.onToggle }}" style="{{ s.bigCheckStyle }}">{{ s.bigCheckLabel }}</button>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+
+                        <sc-if value="{{ ex.anyRemoved }}" hint-placeholder-val="{{ false }}">
+                          <button onClick="{{ ex.restore }}" style="margin-top:12px;width:100%;height:40px;border:1.5px solid #e8ebee;background:#fff;color:#8b8f94;border-radius:999px;font-size:13px;cursor:pointer">Verwijderde sets terugzetten</button>
+                        </sc-if>
+                        <sc-if value="{{ ex.hasRest }}" hint-placeholder-val="{{ true }}">
+                          <button onClick="{{ ex.startRest }}" style="margin-top:12px;width:100%;height:44px;border:1.5px solid #2c9dfd;background:rgba(44,157,253,.08);color:#1f5dc4;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer">Start rust · {{ ex.restLabel }}</button>
+                        </sc-if>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+
+          <div style="margin-top:6px">
+            <x-import component-from-global-scope="BoedtCampDesignSystem_d1ef37.Button" variant="dark" size="lg" on-click="{{ finishWorkout }}" dc-props="{{ ctaFull }}" hint-size="100%,54px">Training afronden</x-import>
+          </div>
+        </div>
+
+        <sc-if value="{{ restOn }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;left:14px;right:14px;bottom:16px;background:#000;color:#fff;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 16px 32px rgba(10,14,20,.3)">
+            <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:26px;min-width:74px">{{ restClock }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;color:#c7c9cc">Rust · {{ restEx }}</div>
+              <div style="height:4px;border-radius:999px;background:rgba(255,255,255,.16);margin-top:6px;overflow:hidden">
+                <div style="{{ restBarStyle }}"></div>
+              </div>
+            </div>
+            <button onClick="{{ stopRest }}" style="flex:none;padding:9px 14px;border:1px solid rgba(255,255,255,.22);background:transparent;color:#fff;border-radius:999px;font-size:12.5px;cursor:pointer">Overslaan</button>
+          </div>
+        </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+        <div class="bcs" style="flex:1;overflow-y:auto;padding:20px">
+          <div style="border-radius:18px;background:#000 url(assets/background-dark-chevron.png) right bottom/cover no-repeat;color:#fff;padding:22px;position:relative;overflow:hidden">
+            <x-import component-from-global-scope="BoedtCampDesignSystem_d1ef37.Badge" tone="blue" hint-size="auto,22px">Sessie opgeslagen</x-import>
+            <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:26px;margin-top:10px">Goed gewerkt</div>
+            <div style="display:flex;gap:26px;margin-top:18px">
+              <div>
+                <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:24px">{{ doneSets }}</div>
+                <div style="font-size:11.5px;color:#8b8f94">sets</div>
+              </div>
+              <div>
+                <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:24px">{{ doneVolume }}</div>
+                <div style="font-size:11.5px;color:#8b8f94">kg volume</div>
+              </div>
+              <div>
+                <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:24px">{{ donePRs }}</div>
+                <div style="font-size:11.5px;color:#8b8f94">persoonlijke records</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94">Hoe zwaar voelde het?</div>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            <sc-for list="{{ rpeOptions }}" as="r" hint-placeholder-count="5">
+              <button onClick="{{ r.pick }}" style="{{ r.style }}">{{ r.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="margin-top:20px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94">Opmerking voor je coach</div>
+          <textarea value="{{ noteVal }}" onChange="{{ onNote }}" placeholder="Bv. rechterknie voelde stroef bij de lunges" style="width:100%;margin-top:10px;min-height:92px;padding:12px 14px;border:1.5px solid #e8ebee;border-radius:12px;font-size:14px;color:#000;outline:none;resize:vertical"></textarea>
+
+          <button onClick="{{ togglePain }}" style="{{ painStyle }}">
+            <span style="{{ painDotStyle }}"></span>
+            <span style="font-size:14px;font-weight:600">Ik had pijn tijdens deze training</span>
+          </button>
+
+          <div style="margin-top:20px">
+            <x-import component-from-global-scope="BoedtCampDesignSystem_d1ef37.Button" variant="primary" size="lg" on-click="{{ sendToCoach }}" dc-props="{{ ctaFull }}" hint-size="100%,54px">Versturen naar coach</x-import>
+          </div>
+          <button onClick="{{ goHome }}" style="margin-top:10px;width:100%;height:48px;border:0;background:transparent;color:#7c8794;font-size:14px;cursor:pointer">Later</button>
+        </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <div style="width:300px;padding-top:10px;display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94">Ontwerpkeuzes</div>
+      <sc-for list="{{ rationale }}" as="r" hint-placeholder-count="4">
+        <div style="background:#fff;border:1px solid #e8ebee;border-radius:12px;padding:14px 16px">
+          <div style="font-size:13.5px;font-weight:600;color:#000;margin-bottom:4px">{{ r.t }}</div>
+          <div style="font-size:12.5px;line-height:1.6;color:#7c8794;text-wrap:pretty">{{ r.d }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isTrainer }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1180px;margin:0 auto;padding:32px 28px 72px">
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+      <sc-for list="{{ clientTabs }}" as="c" hint-placeholder-count="3">
+        <button onClick="{{ c.pick }}" style="{{ c.style }}">
+          <span style="{{ c.nameStyle }}">{{ c.label }}</span>
+          <span style="display:block;font-size:12px;color:#8b8f94;margin-top:2px">{{ c.sub }}</span>
+          <span style="display:block;font-size:11.5px;color:#1f5dc4;margin-top:4px;font-weight:600">{{ c.days }}</span>
+        </button>
+      </sc-for>
+      <button onClick="{{ addClient }}" style="padding:12px 18px;border:1.5px dashed #c2c8cf;background:transparent;border-radius:12px;font-size:13.5px;color:#8b8f94;cursor:pointer">+ Klant toevoegen</button>
+    </div>
+
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
+      <div>
+        <x-import component-from-global-scope="BoedtCampDesignSystem_d1ef37.Badge" tone="blue" hint-size="auto,22px">Coach-dashboard</x-import>
+        <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:32px;color:#000;line-height:1.1;margin-top:8px">{{ clientName }}</div>
+        <div style="font-size:13.5px;color:#7c8794;margin-top:6px">{{ clientMeta }} · focus: {{ clientFocus }}</div>
+      </div>
+      <div style="display:flex;gap:4px;padding:4px;background:#fff;border:1px solid #e8ebee;border-radius:999px">
+        <button onClick="{{ setTvA }}" style="{{ tvAStyle }}">Opvolging</button>
+        <button onClick="{{ setTvB }}" style="{{ tvBStyle }}">Programma-editor</button>
+      </div>
+    </div>
+
+    <sc-if value="{{ isTvA }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+          <x-import component-from-global-scope="BoedtCampDesignSystem_d1ef37.Card" dc-props="{{ kpiCard }}" hint-size="100%,124px">
+            <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94">{{ k.label }}</div>
+            <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:30px;color:#000;margin-top:8px;line-height:1">{{ k.value }}</div>
+            <div style="{{ k.deltaStyle }}">{{ k.delta }}</div>
+          </x-import>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.35fr 1fr;gap:18px;margin-top:18px;align-items:start">
+
+        <div style="background:#fff;border:1px solid #e8ebee;border-radius:16px;padding:22px 24px;box-shadow:0 1px 2px rgba(10,14,20,.05)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div>
+              <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:19px;color:#000">Gewichtsprogressie</div>
+              <div style="font-size:12.5px;color:#8b8f94;margin-top:2px">Zwaarste set per sessie · laatste 8 weken</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+              <sc-for list="{{ chartTabs }}" as="c" hint-placeholder-count="4">
+                <button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-end;gap:10px;height:210px;margin-top:24px;padding-bottom:2px">
+            <sc-for list="{{ chartBars }}" as="b" hint-placeholder-count="8">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end">
+                <div style="font-size:12px;font-weight:600;color:#454e58">{{ b.val }}</div>
+                <div style="{{ b.barStyle }}"></div>
+                <div style="font-size:11px;color:#8b8f94">{{ b.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:18px;padding-top:16px;border-top:1px solid #e8ebee;font-size:13px;color:#7c8794">{{ chartInsight }}</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <div style="background:#fff;border:1px solid #e8ebee;border-radius:16px;padding:22px 24px;box-shadow:0 1px 2px rgba(10,14,20,.05)">
+            <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:19px;color:#000">Volume per training</div>
+            <div style="font-size:12.5px;color:#8b8f94;margin-top:2px">Totaal getild gewicht (ton)</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:18px">
+              <sc-for list="{{ volumeRows }}" as="v" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="width:64px;flex:none;font-size:12px;color:#8b8f94">{{ v.label }}</div>
+                  <div style="flex:1;height:12px;border-radius:999px;background:#f4f6f8;overflow:hidden">
+                    <div style="{{ v.fillStyle }}"></div>
+                  </div>
+                  <div style="width:52px;flex:none;text-align:right;font-size:12.5px;font-weight:600;color:#454e58">{{ v.val }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#000 url(assets/background-dark-chevron.png) right top/cover no-repeat;color:#fff;border-radius:16px;padding:22px 24px;position:relative;overflow:hidden">
+            <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:19px">Opmerkingen &amp; pijn</div>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+              <sc-for list="{{ notes }}" as="n" hint-placeholder-count="3">
+                <div style="border-left:2px solid rgba(255,255,255,.14);padding-left:14px">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="font-size:11.5px;color:#8b8f94">{{ n.when }} · {{ n.day }}</div>
+                    <sc-if value="{{ n.pain }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:rgba(255,120,110,.16);color:#ff8b82">pijn</span>
+                    </sc-if>
+                  </div>
+                  <div style="font-size:13.5px;line-height:1.5;color:#e8ebee;margin-top:4px;text-wrap:pretty">{{ n.text }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #e8ebee;border-radius:16px;padding:22px 24px;margin-top:18px;box-shadow:0 1px 2px rgba(10,14,20,.05)">
+        <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:19px;color:#000">Laatste sessie in detail</div>
+        <div style="font-size:12.5px;color:#8b8f94;margin-top:2px">{{ lastSessionMeta }}</div>
+        <div style="display:grid;grid-template-columns:1.6fr .8fr .8fr .8fr .9fr;gap:0;margin-top:18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b8f94;padding-bottom:10px;border-bottom:1px solid #e8ebee">
+          <div>Oefening</div><div>Doel</div><div>Vorige</div><div>Uitgevoerd</div><div>Verschil</div>
+        </div>
+        <sc-for list="{{ sessionRows }}" as="r" hint-placeholder-count="7">
+          <div style="display:grid;grid-template-columns:1.6fr .8fr .8fr .8fr .9fr;gap:0;padding:12px 0;border-bottom:1px solid #f4f6f8;align-items:center">
+            <div style="font-size:14px;font-weight:600;color:#000">{{ r.name }}</div>
+            <div style="font-size:13.5px;color:#7c8794">{{ r.target }}</div>
+            <div style="font-size:13.5px;color:#c2c8cf">{{ r.prev }}</div>
+            <div style="font-size:14px;font-weight:600;color:#000">{{ r.actual }}</div>
+            <div style="{{ r.deltaStyle }}">{{ r.delta }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTvB }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:8px;margin-top:24px;flex-wrap:wrap;align-items:center">
+        <sc-for list="{{ dayTabs }}" as="t" hint-placeholder-count="3">
+          <button onClick="{{ t.pick }}" style="{{ t.edStyle }}">{{ t.full }}</button>
+        </sc-for>
+        <button onClick="{{ onAddDay }}" style="padding:11px 18px;border:1.5px dashed #c2c8cf;background:transparent;border-radius:12px;font-size:13px;color:#8b8f94;cursor:pointer">+ Trainingsdag</button>
+      </div>
+
+      <div style="background:#fff;border:1px solid #e8ebee;border-radius:16px;padding:20px 24px;margin-top:16px;display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;box-shadow:0 1px 2px rgba(10,14,20,.05)">
+        <div style="flex:1;min-width:280px">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b8f94;margin-bottom:6px">Titel van deze trainingsdag</div>
+          <input type="text" value="{{ dayTitleValue }}" onChange="{{ onDayTitle }}" style="width:100%;height:44px;padding:0 14px;border:1.5px solid #e8ebee;border-radius:10px;font-size:15px;font-weight:600;color:#000;outline:none">
+        </div>
+        <button onClick="{{ toggleRotate }}" style="{{ rotateStyle }}">
+          <span style="{{ rotateDotStyle }}"></span>
+          <span style="font-size:13px">Rouleer core &amp; mobiliteit uit de pool</span>
+        </button>
+        <button onClick="{{ toggleRow }}" style="{{ rowToggleStyle }}">
+          <span style="{{ rowToggleDotStyle }}"></span>
+          <span style="font-size:13px">Roeisessie met opbouw</span>
+        </button>
+        <button onClick="{{ onRemoveDay }}" style="{{ removeDayStyle }}">✕ Dag verwijderen</button>
+      </div>
+
+      <sc-if value="{{ isDay3 }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid #e8ebee;border-radius:16px;padding:22px 24px;margin-top:16px;box-shadow:0 1px 2px rgba(10,14,20,.05)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap">
+            <div style="max-width:46ch">
+              <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:19px;color:#000">Blok 2 · roeiopbouw</div>
+              <div style="font-size:12.5px;color:#8b8f94;margin-top:2px">De app rekent de roeitijd elke week zelf op. Startduur × (1 + %) per week — de klant ziet enkel het getal van vandaag en wat ze vorige week deed.</div>
+              <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap">
+                <div>
+                  <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b8f94;margin-bottom:6px">Startduur (min)</div>
+                  <input type="number" value="{{ rowBase }}" onChange="{{ onRowBase }}" style="height:40px;width:110px;padding:0 12px;border:1.5px solid #e8ebee;border-radius:9px;font-size:14px;color:#000;outline:none">
+                </div>
+                <div>
+                  <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b8f94;margin-bottom:6px">Toename / week</div>
+                  <input type="number" value="{{ rowPct }}" onChange="{{ onRowPct }}" style="height:40px;width:110px;padding:0 12px;border:1.5px solid #e8ebee;border-radius:9px;font-size:14px;color:#000;outline:none">
+                </div>
+                <div>
+                  <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b8f94;margin-bottom:6px">Huidige week</div>
+                  <input type="number" value="{{ rowWeek }}" onChange="{{ onRowWeek }}" style="height:40px;width:110px;padding:0 12px;border:1.5px solid #e8ebee;border-radius:9px;font-size:14px;color:#000;outline:none">
+                </div>
+              </div>
+              <div style="font-size:13px;color:#7c8794;margin-top:16px">Vandaag <strong style="color:#000">{{ rowNow }} min</strong> · volgende week {{ rowNext }} min</div>
+            </div>
+            <div style="flex:1;min-width:280px">
+              <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b8f94;margin-bottom:14px">Opbouw over 8 weken (min)</div>
+              <div style="display:flex;align-items:flex-end;gap:10px;height:150px">
+                <sc-for list="{{ rowLadder }}" as="r" hint-placeholder-count="8">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end">
+                    <div style="font-size:12px;font-weight:600;color:#454e58">{{ r.val }}</div>
+                    <div style="{{ r.barStyle }}"></div>
+                    <div style="font-size:11px;color:#8b8f94">{{ r.label }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="background:#fff;border:1px solid #e8ebee;border-radius:16px;padding:22px 24px;margin-top:16px;box-shadow:0 1px 2px rgba(10,14,20,.05)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+          <div>
+            <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:19px;color:#000">{{ dayTitle }}</div>
+            <div style="font-size:12.5px;color:#8b8f94;margin-top:2px">Pas sets, herhalingen, doelgewicht en rust aan — wijzigingen staan direct in de app van deze klant.</div>
+          </div>
+          <div style="font-size:12.5px;color:#1f5dc4;font-weight:600">{{ editorSaved }}</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:34px 1.4fr .8fr .45fr .6fr .8fr .5fr 1fr 40px;gap:10px;margin-top:20px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b8f94;padding-bottom:10px;border-bottom:1px solid #e8ebee">
+          <div></div><div>Oefening</div><div>Blok</div><div>Sets</div><div>Herh. / tijd</div><div>Doelgewicht</div><div>Rust</div><div>Videolink</div><div></div>
+        </div>
+
+        <sc-for list="{{ editorRows }}" as="e" hint-placeholder-count="13">
+          <div style="{{ e.rowStyle }}">
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:center">
+              <button onClick="{{ e.onUp }}" title="Omhoog" style="{{ e.moveStyle }}">▲</button>
+              <button onClick="{{ e.onDown }}" title="Omlaag" style="{{ e.moveStyle }}">▼</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;min-width:0">
+              <div style="{{ e.tagStyle }}">{{ e.tag }}</div>
+              <div style="min-width:0">
+                <div style="font-size:14px;font-weight:600;color:#000">{{ e.name }}</div>
+                <div style="font-size:11.5px;color:#8b8f94">{{ e.sub }}</div>
+              </div>
+            </div>
+            <div style="min-width:0">
+              <select value="{{ e.block }}" onChange="{{ e.onBlock }}" style="{{ e.blockSelectStyle }}">
+                <sc-for list="{{ e.blockOptions }}" as="b" hint-placeholder-count="3">
+                  <option value="{{ b.value }}">{{ b.label }}</option>
+                </sc-for>
+              </select>
+              <span style="{{ e.blockTextStyle }}">{{ e.blockLabel }}</span>
+            </div>
+            <input type="number" value="{{ e.sets }}" onChange="{{ e.onSets }}" style="height:38px;padding:0 10px;border:1.5px solid #e8ebee;border-radius:9px;font-size:14px;color:#000;outline:none;width:100%">
+            <input type="number" value="{{ e.reps }}" onChange="{{ e.onReps }}" style="height:38px;padding:0 10px;border:1.5px solid #e8ebee;border-radius:9px;font-size:14px;color:#000;outline:none;width:100%">
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" step="{{ e.step }}" value="{{ e.load }}" onChange="{{ e.onLoad }}" style="{{ e.loadStyle }}">
+              <span style="{{ e.bwStyle }}">lichaamsgewicht</span>
+              <span style="font-size:12px;color:#8b8f94;flex:none">{{ e.unitLabel }}</span>
+            </div>
+            <input type="number" step="15" value="{{ e.rest }}" onChange="{{ e.onRest }}" style="height:38px;padding:0 10px;border:1.5px solid #e8ebee;border-radius:9px;font-size:14px;color:#000;outline:none;width:100%">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0">
+              <input type="text" value="{{ e.video }}" onChange="{{ e.onVideo }}" placeholder="https://…" style="height:38px;padding:0 10px;border:1.5px solid #e8ebee;border-radius:9px;font-size:12.5px;color:#454e58;outline:none;width:100%;min-width:0">
+              <a href="{{ e.video }}" target="_blank" rel="noreferrer" style="flex:none;width:34px;height:34px;border-radius:9px;background:#f4f6f8;display:flex;align-items:center;justify-content:center;font-size:11px;color:#1f5dc4;text-decoration:none">▶</a>
+            </div>
+            <button onClick="{{ e.onDrop }}" title="Oefening verwijderen" style="width:34px;height:38px;border:1.5px solid #e8ebee;background:#fff;border-radius:9px;font-size:14px;color:#c2c8cf;cursor:pointer">✕</button>
+          </div>
+        </sc-for>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:18px;border-top:1px solid #e8ebee;flex-wrap:wrap">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b8f94;width:100%">Snel toevoegen · eigen sjablonen</div>
+          <select value="{{ addPick }}" onChange="{{ onAddPick }}" style="height:44px;min-width:320px;padding:0 12px;border:1.5px solid #e8ebee;border-radius:10px;font-size:14px;color:#000;background:#fff;outline:none">
+            <sc-for list="{{ libOptions }}" as="o" hint-placeholder-count="8">
+              <option value="{{ o.value }}">{{ o.label }}</option>
+            </sc-for>
+          </select>
+          <x-import component-from-global-scope="BoedtCampDesignSystem_d1ef37.Button" variant="dark" size="md" on-click="{{ onAddExercise }}" hint-size="auto,44px">+ Toevoegen aan deze training</x-import>
+          <div style="font-size:12.5px;color:#8b8f94;flex:1;min-width:220px">Start met 3 sets en de standaardwaarden — daarna pas je sets, herhalingen, gewicht en rust in de rij aan.</div>
+        </div>
+
+        <div style="margin-top:20px;padding-top:18px;border-top:1px solid #e8ebee">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div>
+              <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:19px;color:#000">Open oefeningenbibliotheek</div>
+              <div style="font-size:12.5px;color:#8b8f94;margin-top:2px">Twee open bronnen samengevoegd: free-exercise-db (publiek domein) en wger (CC BY-SA, met Nederlandse namen). Filter op doel en op primaire spiergroep.</div>
+            </div>
+            <sc-if value="{{ dbIdle }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="BoedtCampDesignSystem_d1ef37.Button" variant="primary" size="md" on-click="{{ loadDb }}" hint-size="auto,44px">Bibliotheek laden</x-import>
+            </sc-if>
+            <sc-if value="{{ dbLoading }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:13px;color:#1f5dc4;font-weight:600">Bibliotheek laden…</div>
+            </sc-if>
+            <sc-if value="{{ dbOk }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:13px;color:#8b8f94">{{ dbCount }} oefeningen · {{ dbSources }} · {{ dbFound }} in deze selectie</div>
+            </sc-if>
+          </div>
+
+          <sc-if value="{{ dbFail }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:14px;padding:14px 16px;border-radius:12px;background:#fff5f4;border:1.5px solid #ffd6d2;font-size:13px;color:#c9463c">Bibliotheek kon niet geladen worden (netwerk geblokkeerd). In productie haal je deze lijst één keer op en bewaar je ze in je eigen database — de sjablonen hierboven blijven werken.</div>
+          </sc-if>
+
+          <sc-if value="{{ dbOk }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:16px">
+              <sc-for list="{{ goalTabs }}" as="g" hint-placeholder-count="6">
+                <button onClick="{{ g.pick }}" style="{{ g.style }}">{{ g.label }}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+              <sc-for list="{{ muscleTabs }}" as="m" hint-placeholder-count="10">
+                <button onClick="{{ m.pick }}" style="{{ m.style }}">{{ m.label }}</button>
+              </sc-for>
+            </div>
+            <input type="text" value="{{ dbQuery }}" onChange="{{ onDbQuery }}" placeholder="Zoek op naam of materiaal (bv. dumbbell, kettlebell, band)" style="width:100%;height:44px;margin-top:14px;padding:0 14px;border:1.5px solid #e8ebee;border-radius:10px;font-size:14px;color:#000;outline:none">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px">
+              <sc-for list="{{ dbResults }}" as="r" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #e8ebee;border-radius:12px">
+                  <div style="{{ r.imgStyle }}"></div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13.5px;font-weight:600;color:#000">{{ r.name }}</div>
+                    <div style="font-size:11.5px;color:#8b8f94;margin-top:2px">{{ r.muscle }} · {{ r.sub }}</div>
+                  </div>
+                  <button onClick="{{ r.add }}" style="flex:none;height:36px;padding:0 14px;border:1.5px solid #2c9dfd;background:rgba(44,157,253,.08);color:#1f5dc4;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer">+ Voeg toe</button>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:12.5px;color:#8b8f94;margin-top:12px">{{ dbMore }}</div>
+          </sc-if>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:18px;border-top:1px solid #e8ebee;{{ poolRowStyle }}">
+          <x-import component-from-global-scope="BoedtCampDesignSystem_d1ef37.Button" variant="primary" size="md" on-click="{{ rotatePool }}" dc-props="{{ nowrap }}" hint-size="auto,46px">Rouleer pool</x-import>
+          <div style="font-size:12.5px;color:#7c8794">Voor dagen met rotatie kiest de app elke week 3 mobiliteitsoefeningen (warming up) en 3 core-oefeningen (cooldown) uit de pool. Hiermee forceer je een nieuwe selectie.</div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isData }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1000px;margin:0 auto;padding:36px 28px 80px">
+    <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8f94">Techniek</div>
+    <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:32px;color:#000;line-height:1.1;margin-top:4px">Datamodel &amp; API</div>
+    <p style="font-size:14px;line-height:1.7;color:#7c8794;max-width:70ch;text-wrap:pretty">Dit prototype schrijft naar <code>localStorage</code> via één opslaglaag, zodat je alles kan testen zonder backend. Die laag heeft exact de vorm van de API hieronder — één bestand vervangen (bv. door Supabase- of Firestore-calls) volstaat om echt te persisteren.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px">
+      <sc-for list="{{ tables }}" as="t" hint-placeholder-count="6">
+        <div style="background:#fff;border:1px solid #e8ebee;border-radius:14px;padding:18px 20px">
+          <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:17px;color:#000">{{ t.name }}</div>
+          <div style="font-size:12.5px;color:#8b8f94;margin-top:2px;margin-bottom:12px">{{ t.desc }}</div>
+          <sc-for list="{{ t.cols }}" as="c" hint-placeholder-count="4">
+            <div style="display:flex;gap:10px;padding:5px 0;border-top:1px solid #f4f6f8">
+              <div style="width:150px;flex:none;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#1f5dc4">{{ c.n }}</div>
+              <div style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#7c8794">{{ c.t }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background:#000;color:#e8ebee;border-radius:14px;padding:22px 24px;margin-top:20px">
+      <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:17px;color:#fff;margin-bottom:14px">API-endpoints</div>
+      <sc-for list="{{ endpoints }}" as="e" hint-placeholder-count="6">
+        <div style="display:flex;gap:14px;padding:8px 0;border-top:1px solid rgba(255,255,255,.08);align-items:baseline">
+          <div style="{{ e.mStyle }}">{{ e.m }}</div>
+          <div style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#fff;min-width:340px">{{ e.p }}</div>
+          <div style="font-size:12.5px;color:#8b8f94">{{ e.d }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e8ebee;border-radius:14px;padding:20px 22px;margin-top:20px">
+      <div style="font-family:'Exo',sans-serif;font-style:italic;font-weight:900;font-size:17px;color:#000;margin-bottom:10px">Volgende stappen</div>
+      <sc-for list="{{ nextSteps }}" as="s" hint-placeholder-count="4">
+        <div style="display:flex;gap:10px;padding:6px 0;font-size:13.5px;line-height:1.6;color:#7c8794">
+          <span style="color:#2c9dfd;flex:none">›</span><span>{{ s }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:1000}}">
+const CORE_POOL = [
+  { id: 'core-deadbug', name: 'Dead bug', type: 'time', reps: 40 },
+  { id: 'core-plank', name: 'Plank', type: 'time', reps: 45 },
+  { id: 'core-sideplank', name: 'Side plank (per zijde)', type: 'time', reps: 30 },
+  { id: 'core-pallof', name: 'Pallof press', type: 'reps', reps: 12, load: 10 },
+  { id: 'core-birddog', name: 'Bird dog', type: 'time', reps: 40 },
+  { id: 'core-hollow', name: 'Hollow hold', type: 'time', reps: 30 },
+  { id: 'core-suitcase', name: 'Suitcase carry', type: 'time', reps: 40, load: 16 },
+  { id: 'core-rollout', name: 'Ab rollout', type: 'reps', reps: 10 }
+];
+const MOB_POOL = [
+  { id: 'mob-catcow', name: 'Cat-cow', type: 'time', reps: 45 },
+  { id: 'mob-thoracic', name: 'Thoracic opener', type: 'time', reps: 45 },
+  { id: 'mob-9090', name: '90/90 heupwissel', type: 'time', reps: 60 },
+  { id: 'mob-wgs', name: "World's greatest stretch", type: 'time', reps: 60 },
+  { id: 'mob-ankle', name: 'Enkelmobiliteit', type: 'time', reps: 45 },
+  { id: 'mob-shoulder', name: 'Schouderdislocaties', type: 'time', reps: 45 },
+  { id: 'mob-hipflex', name: 'Heupbuiger rek', type: 'time', reps: 60 },
+  { id: 'mob-pullapart', name: 'Band pull-apart', type: 'time', reps: 45 }
+];
+const DAY1_MAIN = [
+  { id: 'd1-squat', name: 'Squat', sets: 4, reps: 6, load: 55, rest: 120, note: 'Rustig zakken (3 tellen), krachtig omhoog. Knieën in lijn met de tenen.' },
+  { id: 'd1-bench', name: 'Bench press', sets: 4, reps: 8, load: 32.5, rest: 120, note: 'Schouderbladen ingetrokken, stang tot midden borst.' },
+  { id: 'd1-deadlift', name: 'Deadlift', sets: 3, reps: 5, load: 70, rest: 150, note: 'Rug neutraal. Stop de set zodra de vorm verandert.' },
+  { id: 'd1-pullup', name: 'Pull up (met band)', sets: 3, reps: 6, load: 0, rest: 120, unit: 'band', note: 'Groene band als ondersteuning. Volledig strekken onderaan.' },
+  { id: 'd1-shoulderpress', name: 'Shoulder press', sets: 3, reps: 10, load: 14, rest: 90 },
+  { id: 'd1-revlunge', name: 'Reverse lunge (per been)', sets: 3, reps: 10, load: 12, rest: 90, note: 'Stap achteruit, romp rechtop. Houd je vast als je wankelt.' },
+  { id: 'd1-bicepscurl', name: 'Biceps curl', sets: 3, reps: 12, load: 9, rest: 60 }
+];
+const DAY2_MAIN = [
+  { id: 'd2-lunge', name: 'Lunge (per been)', sets: 4, reps: 10, load: 14, rest: 120 },
+  { id: 'd2-srdl', name: 'Single romanian deadlift', sets: 3, reps: 8, load: 16, rest: 90, note: 'Eén been, heup scharniert. Steunpunt gebruiken mag.' },
+  { id: 'd2-bentrow', name: 'Bent over row', sets: 4, reps: 10, load: 30, rest: 120 },
+  { id: 'd2-inclinefly', name: 'Incline chest fly 45°', sets: 3, reps: 12, load: 8, rest: 90, note: 'Lichte buiging in de elleboog, brede boog.' },
+  { id: 'd2-lateral', name: 'Lateral raise dumbbell', sets: 3, reps: 14, load: 5, rest: 60 },
+  { id: 'd2-hammer', name: 'Hammer curl', sets: 3, reps: 12, load: 9, rest: 60 },
+  { id: 'd2-kickback', name: 'Triceps kick back', sets: 3, reps: 12, load: 5, rest: 60 }
+];
+
+const DAY3_STAB = [
+  { id: 'd3-deadbug', name: 'Dead bug (langzaam)', sets: 3, reps: 45, type: 'time', rest: 30, note: 'Onderrug blijft plat op de mat. Adem rustig uit bij het strekken.' },
+  { id: 'd3-sideplank', name: 'Side plank (per zijde)', sets: 3, reps: 30, type: 'time', rest: 30 },
+  { id: 'd3-singleleg', name: 'Single leg stance + reik', sets: 3, reps: 40, type: 'time', rest: 30, note: 'Op één been staan en met de hand naar de grond reiken. Steun bij de hand houden mag.' },
+  { id: 'd3-birddog', name: 'Bird dog', sets: 3, reps: 40, type: 'time', rest: 30 },
+  { id: 'd3-pallof', name: 'Pallof press', sets: 3, reps: 12, load: 10, rest: 45, note: 'Romp blijft stil, alleen de armen bewegen.' },
+  { id: 'd3-carry', name: 'Suitcase carry', sets: 2, reps: 40, type: 'time', load: 16, rest: 45 }
+];
+const ROW_BASE = 10, ROW_PCT = 10, ROW_WEEK = 3;
+
+const VIDEOS = {
+  'd1-squat': 'https://www.youtube.com/watch?v=ultWZbUMPL8',
+  'd1-bench': 'https://www.youtube.com/watch?v=rT7DgCr-3pg',
+  'd1-deadlift': 'https://www.youtube.com/watch?v=op9kVnSso6Q',
+  'd1-pullup': 'https://www.youtube.com/watch?v=eGo4IYlbE5g',
+  'd1-shoulderpress': 'https://www.youtube.com/watch?v=qEwKCR5JCog',
+  'd1-revlunge': 'https://www.youtube.com/watch?v=xrPFzobD8Ks',
+  'd1-bicepscurl': 'https://www.youtube.com/watch?v=ykJmrZ5v0Oo',
+  'd2-lunge': 'https://www.youtube.com/watch?v=QOVaHwm-Q6U',
+  'd2-srdl': 'https://www.youtube.com/watch?v=1uDiW5--rAE',
+  'd2-bentrow': 'https://www.youtube.com/watch?v=vT2GjY_Umpw',
+  'd2-inclinefly': 'https://www.youtube.com/watch?v=8oR9m5KOWKI',
+  'd2-lateral': 'https://www.youtube.com/watch?v=3VcKaXpzqRo',
+  'd2-hammer': 'https://www.youtube.com/watch?v=zC3nLlEvin4',
+  'd2-kickback': 'https://www.youtube.com/watch?v=6SS6K3lAwZ8',
+  'd3-row': 'https://www.youtube.com/watch?v=zQ82RYIFLN8'
+};
+
+const CLIENTS = [
+  { id: 'marleen', naam: 'Tania Dhaene', meta: '52 jaar · 1-op-1 · sinds maart 2026', focus: 'Kracht opbouwen, rechterknie ontzien', days: [1, 2, 3], scale: 1, freq: '2-3× per week', row: { base: 10, pct: 10, week: 3 } },
+  { id: 'koenann', naam: 'Koen & Ann Verlinden', meta: '62 & 59 jaar · duo-training', focus: 'Rustige opbouw, veel mobiliteit', days: [1, 3], scale: 0.65, freq: '2× per week', row: { base: 8, pct: 8, week: 1 } },
+  { id: 'jens', naam: 'Jens Peeters', meta: '17 jaar · basketbal', focus: 'Explosiviteit en sprongkracht', days: [1, 2], scale: 1.6, freq: '4× per week', row: { base: 12, pct: 12, week: 5 } }
+];
+const BLOCKS = [{ id: 'warmup', nl: 'Warming up' }, { id: 'main', nl: 'Main' }, { id: 'cooldown', nl: 'Cooldown' }];
+const BLOCK_NL = { warmup: 'Warming up', main: 'Main', cooldown: 'Cooldown' };
+const DEFAULT_DAYS = [
+  { n: 1, title: 'Training 1 · Full body A', rotate: true, row: false },
+  { n: 2, title: 'Training 2 · Full body B', rotate: true, row: false },
+  { n: 3, title: 'Training 3 · Stabiliteit & roeien', rotate: false, row: true }
+];
+function normBlock(b) {
+  if (b === 'warmup' || b === 'main' || b === 'cooldown') return b;
+  if (b === 'mobiliteit') return 'warmup';
+  if (b === 'core') return 'cooldown';
+  return 'main';
+}
+
+const DB_URL = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json';
+const DB_IMG = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/';
+const WGER_URL = 'https://wger.de/api/v2/exerciseinfo/?format=json&limit=500&offset=';
+const WGER_MUSCLE = {
+  'biceps brachii': 'biceps', 'brachialis': 'biceps', 'triceps brachii': 'triceps',
+  'pectoralis major': 'chest', 'serratus anterior': 'chest',
+  'latissimus dorsi': 'lats', 'trapezius': 'traps', 'erector spinae': 'lower back',
+  'anterior deltoid': 'shoulders', 'deltoid': 'shoulders',
+  'rectus abdominis': 'abdominals', 'obliquus externus abdominis': 'abdominals',
+  'quadriceps femoris': 'quadriceps', 'biceps femoris': 'hamstrings',
+  'gluteus maximus': 'glutes', 'gastrocnemius': 'calves', 'soleus': 'calves'
+};
+const WGER_CAT = {
+  Abs: 'abdominals', Arms: 'biceps', Back: 'lats', Calves: 'calves',
+  Chest: 'chest', Legs: 'quadriceps', Shoulders: 'shoulders', Cardio: 'quadriceps'
+};
+const MUSCLES = [
+  { id: 'all', nl: 'Alle spiergroepen' },
+  { id: 'quadriceps', nl: 'Quadriceps' },
+  { id: 'hamstrings', nl: 'Hamstrings' },
+  { id: 'glutes', nl: 'Bilspieren' },
+  { id: 'calves', nl: 'Kuiten' },
+  { id: 'chest', nl: 'Borst' },
+  { id: 'lats', nl: 'Latissimus' },
+  { id: 'middle back', nl: 'Midden rug' },
+  { id: 'lower back', nl: 'Lage rug' },
+  { id: 'traps', nl: 'Trapezius' },
+  { id: 'shoulders', nl: 'Schouders' },
+  { id: 'biceps', nl: 'Biceps' },
+  { id: 'triceps', nl: 'Triceps' },
+  { id: 'forearms', nl: 'Onderarmen' },
+  { id: 'abdominals', nl: 'Buik / core' },
+  { id: 'abductors', nl: 'Abductoren' },
+  { id: 'adductors', nl: 'Adductoren' },
+  { id: 'neck', nl: 'Nek' }
+];
+const STAB_WORDS = ['plank', 'side bridge', 'bird dog', 'bird-dog', 'copenhagen', 'clamshell', 'wall slide', 'monster walk', 'single-leg stance', 'balance', 'dead bug', 'pallof', 'bosu', 'balance board', 'wobble', 'turkish get-up', 'windmill', 'superman', 'hollow', 'isometric neck', 'isometric wiper', 'glute bridge', 'butt lift', 'physioball hip bridge', 'one-legged deadlift', 'one-legged cable', 'downward facing balance', 'london bridges', 'stability ball', 'farmer', 'suitcase', 'waiter'];
+const STAB_EXCL = ['snatch balance', 'jerk balance', 'curl', 'triceps', 'calf raise', 'leg extension', 'kickback'];
+const GOALS = [
+  { id: 'all', nl: 'Alle doelen' },
+  { id: 'mobility', nl: 'Mobiliteit & rekken' },
+  { id: 'stability', nl: 'Stabiliteit & evenwicht' },
+  { id: 'core', nl: 'Core' },
+  { id: 'strength', nl: 'Kracht' },
+  { id: 'power', nl: 'Explosiviteit' },
+  { id: 'cardio', nl: 'Cardio' }
+];
+const GOAL_NL = { mobility: 'mobiliteit', stability: 'stabiliteit', core: 'core', strength: 'kracht', power: 'explosief', cardio: 'cardio' };
+
+function goalOf(r) {
+  const cat = (r.category || '').toLowerCase();
+  const name = (r.name || '').toLowerCase();
+  if (cat === 'stretching') return 'mobility';
+  if (cat === 'cardio') return 'cardio';
+  if (cat === 'plyometrics') return 'power';
+  if (cat !== 'olympic weightlifting' && cat !== 'powerlifting' &&
+      STAB_WORDS.some(w => name.indexOf(w) >= 0) && !STAB_EXCL.some(w => name.indexOf(w) >= 0)) return 'stability';
+  if ((r.primaryMuscles || []).indexOf('abdominals') >= 0) return 'core';
+  return 'strength';
+}
+
+const MUSCLE_NL = {};
+MUSCLES.forEach(m => { MUSCLE_NL[m.id] = m.nl; });
+
+const LIBRARY = [
+  { name: 'Bench press', type: 'reps', reps: 8, load: 30, rest: 120 },
+  { name: 'Squat', type: 'reps', reps: 6, load: 50, rest: 120 },
+  { name: 'Front squat', type: 'reps', reps: 6, load: 35, rest: 120 },
+  { name: 'Goblet squat', type: 'reps', reps: 10, load: 16, rest: 90 },
+  { name: 'Deadlift', type: 'reps', reps: 5, load: 60, rest: 150 },
+  { name: 'Romanian deadlift', type: 'reps', reps: 8, load: 40, rest: 120 },
+  { name: 'Hip thrust', type: 'reps', reps: 10, load: 40, rest: 90 },
+  { name: 'Step up (per been)', type: 'reps', reps: 10, load: 12, rest: 90 },
+  { name: 'Bulgarian split squat', type: 'reps', reps: 8, load: 10, rest: 90 },
+  { name: 'Leg press', type: 'reps', reps: 12, load: 60, rest: 90 },
+  { name: 'Calf raise', type: 'reps', reps: 15, load: 20, rest: 60 },
+  { name: 'Lat pulldown', type: 'reps', reps: 10, load: 30, rest: 90 },
+  { name: 'Seated row', type: 'reps', reps: 12, load: 30, rest: 90 },
+  { name: 'Face pull', type: 'reps', reps: 15, load: 12, rest: 60 },
+  { name: 'Incline dumbbell press', type: 'reps', reps: 10, load: 12, rest: 90 },
+  { name: 'Push up', type: 'reps', reps: 10, load: 0, rest: 90 },
+  { name: 'Dips (assisted)', type: 'reps', reps: 8, load: 0, rest: 90 },
+  { name: 'Shoulder press', type: 'reps', reps: 10, load: 14, rest: 90 },
+  { name: 'Lateral raise dumbbell', type: 'reps', reps: 14, load: 5, rest: 60 },
+  { name: 'Biceps curl', type: 'reps', reps: 12, load: 9, rest: 60 },
+  { name: 'Hammer curl', type: 'reps', reps: 12, load: 9, rest: 60 },
+  { name: 'Triceps kick back', type: 'reps', reps: 12, load: 5, rest: 60 },
+  { name: 'Triceps pushdown', type: 'reps', reps: 12, load: 15, rest: 60 },
+  { name: 'Farmer carry', type: 'time', reps: 40, load: 20, rest: 60 },
+  { name: 'Plank', type: 'time', reps: 45, load: 0, rest: 30 },
+  { name: 'Side plank (per zijde)', type: 'time', reps: 30, load: 0, rest: 30 },
+  { name: 'Dead bug', type: 'time', reps: 45, load: 0, rest: 30 },
+  { name: 'Bird dog', type: 'time', reps: 40, load: 0, rest: 30 },
+  { name: 'Pallof press', type: 'reps', reps: 12, load: 10, rest: 45 },
+  { name: 'Hollow hold', type: 'time', reps: 30, load: 0, rest: 30 },
+  { name: 'Single leg stance + reik', type: 'time', reps: 40, load: 0, rest: 30 },
+  { name: 'Cat-cow', type: 'time', reps: 45, load: 0, rest: 20 },
+  { name: '90/90 heupwissel', type: 'time', reps: 60, load: 0, rest: 20 },
+  { name: 'Thoracic opener', type: 'time', reps: 45, load: 0, rest: 20 },
+  { name: 'Enkelmobiliteit', type: 'time', reps: 45, load: 0, rest: 20 },
+  { name: 'Heupbuiger rek', type: 'time', reps: 60, load: 0, rest: 20 },
+  { name: 'Band pull-apart', type: 'time', reps: 45, load: 0, rest: 20 }
+];
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      role: 'client', variant: 'A', trainerView: 'A', screen: 'home',
+      day: 1, week: 27, poolShift: 0, open: 'd1-squat',
+      log: {}, done: {}, rest: null, restLeft: 0,
+      rpe: null, note: '', pain: false, chart: 'd1-squat',
+      clientId: 'marleen', clientStore: this.makeStore(),
+      program: this.makeProgram(1), dayList: DEFAULT_DAYS.map(d => Object.assign({}, d)),
+      rowBase: ROW_BASE, rowPct: ROW_PCT, rowWeek: ROW_WEEK,
+      savedAt: ''
+    };
+  }
+
+  cloneMain(list, scale) {
+    return list.map(e => Object.assign({}, e, scale && e.load ? { load: Math.max(1, Math.round(e.load * scale / 2.5) * 2.5) } : {}));
+  }
+
+  makeProgram(scale) {
+    return { 1: this.cloneMain(DAY1_MAIN, scale), 2: this.cloneMain(DAY2_MAIN, scale), 3: this.cloneMain(DAY3_STAB, scale) };
+  }
+
+  makeStore() {
+    const store = {};
+    CLIENTS.forEach(c => {
+      store[c.id] = {
+        program: this.makeProgram(c.scale),
+        dayList: DEFAULT_DAYS.filter(d => c.days.indexOf(d.n) >= 0).map(d => Object.assign({}, d)),
+        rowBase: c.row.base, rowPct: c.row.pct, rowWeek: c.row.week, log: {}, done: {}
+      };
+    });
+    return store;
+  }
+
+  currentClient() { return CLIENTS.find(c => c.id === this.state.clientId) || CLIENTS[0]; }
+
+  dropExercise(id) {
+    this.persist(st => ({
+      savedAt: 'Oefening verwijderd',
+      dropped: Object.assign({}, st.dropped || {}, { [st.clientId + ':' + st.day + ':' + id]: true }),
+      program: Object.assign({}, st.program, {
+        [st.day]: (st.program[st.day] || []).filter(p => p.id !== id)
+      })
+    }));
+  }
+
+  addExercise() {
+    const lib = LIBRARY[this.state.addPick || 0];
+    if (!lib) return;
+    const id = 'add-' + Date.now();
+    const ex = { id: id, name: lib.name, sets: 3, reps: lib.reps, load: lib.load, rest: lib.rest, type: lib.type };
+    this.persist(st => ({
+      savedAt: lib.name + ' toegevoegd',
+      program: Object.assign({}, st.program, { [st.day]: (st.program[st.day] || []).concat([ex]) })
+    }));
+  }
+
+  loadLibrary() {
+    if (this.state.libStatus === 'loading' || this.state.libStatus === 'ok') return;
+    this.setState({ libStatus: 'loading' });
+
+    const freeDb = fetch(DB_URL)
+      .then(r => { if (!r.ok) throw new Error('http'); return r.json(); })
+      .then(rows => rows.filter(r => r && r.name && r.primaryMuscles && r.primaryMuscles.length).map(r => ({
+        id: 'fx-' + r.id, name: r.name, muscle: r.primaryMuscles[0],
+        equipment: r.equipment || 'geen materiaal', category: r.category || '',
+        goal: goalOf(r), source: 'free-exercise-db',
+        image: r.images && r.images[0] ? DB_IMG + r.images[0] : ''
+      })))
+      .catch(() => []);
+
+    const wger = Promise.all([0, 500].map(off =>
+      fetch(WGER_URL + off).then(r => { if (!r.ok) throw new Error('http'); return r.json(); }).catch(() => ({ results: [] }))
+    )).then(pages => {
+      const out = [];
+      pages.forEach(p => (p.results || []).forEach(r => {
+        const tr = r.translations || [];
+        const nl = tr.find(t => t.language === 6 && t.name);
+        const en = tr.find(t => t.language === 2 && t.name);
+        const t = nl || en;
+        if (!t) return;
+        const cat = (r.category && r.category.name) || '';
+        const mus = (r.muscles || []).map(m => WGER_MUSCLE[(m.name_en || m.name || '').toLowerCase()]).filter(Boolean);
+        const eq = (r.equipment || []).map(e => e.name).join(', ');
+        out.push({
+          id: 'wg-' + r.id, name: t.name.replace(/\s*\((core|mobility)[^)]*\)/i, '').trim(),
+          muscle: mus[0] || WGER_CAT[cat] || 'abdominals',
+          equipment: eq || 'geen materiaal', category: cat.toLowerCase(),
+          goal: goalOf({ category: cat.toLowerCase() === 'cardio' ? 'cardio' : 'strength', name: t.name, primaryMuscles: mus }),
+          source: 'wger', image: r.images && r.images[0] ? r.images[0].image : ''
+        });
+      }));
+      return out;
+    }).catch(() => []);
+
+    Promise.all([freeDb, wger]).then(([a, b]) => {
+      const seen = {};
+      const items = a.concat(b).filter(x => {
+        const k = x.name.toLowerCase().replace(/[^a-z]/g, '');
+        if (seen[k]) return false; seen[k] = 1; return true;
+      }).sort((x, y) => x.name.localeCompare(y.name));
+      this.setState(items.length ? { libStatus: 'ok', libEx: items, libSources: (a.length ? 1 : 0) + (b.length ? 1 : 0) } : { libStatus: 'fail' });
+    });
+  }
+
+  moveExercise(id, dir) {
+    this.persist(st => {
+      const list = (st.program[st.day] || []).slice();
+      const i = list.findIndex(p => p.id === id);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= list.length) return {};
+      const tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+      return { savedAt: 'Volgorde aangepast', program: Object.assign({}, st.program, { [st.day]: list }) };
+    });
+  }
+
+  addFromDb(item) {
+    const timed = item.goal === 'mobility' || item.goal === 'stability';
+    const ex = {
+      id: 'db-' + item.id + '-' + Date.now(),
+      name: item.name, sets: item.goal === 'mobility' ? 2 : 3,
+      reps: timed ? (item.goal === 'mobility' ? 45 : 30) : (item.goal === 'core' ? 12 : 10), load: 0,
+      rest: item.goal === 'mobility' ? 20 : (item.goal === 'stability' || item.goal === 'core' ? 30 : 90),
+      type: timed ? 'time' : 'reps',
+      block: item.goal === 'mobility' ? 'mobiliteit' : (item.goal === 'stability' || item.goal === 'core') ? 'core' : 'kracht',
+      goal: item.goal,
+      dbId: item.id, muscle: item.muscle, equipment: item.equipment
+    };
+    this.persist(st => ({
+      savedAt: item.name + ' toegevoegd',
+      program: Object.assign({}, st.program, { [st.day]: (st.program[st.day] || []).concat([ex]) })
+    }));
+  }
+
+  switchClient(id) {
+    const s = this.state;
+    const snapshot = { program: s.program, dayList: s.dayList, rowBase: s.rowBase, rowPct: s.rowPct, rowWeek: s.rowWeek, log: s.log, done: s.done };
+    const store = Object.assign({}, s.clientStore, { [s.clientId]: snapshot });
+    const target = store[id] || this.makeStore()[id];
+    const client = CLIENTS.find(c => c.id === id);
+    this.persist({
+      clientStore: store, clientId: id, program: target.program,
+      dayList: target.dayList || DEFAULT_DAYS.filter(d => client.days.indexOf(d.n) >= 0).map(d => Object.assign({}, d)),
+      rowBase: target.rowBase, rowPct: target.rowPct, rowWeek: target.rowWeek,
+      log: target.log || {}, done: target.done || {},
+      day: client.days.indexOf(s.day) >= 0 ? s.day : client.days[0], dayEdit: null,
+      open: null, screen: 'home', savedAt: ''
+    });
+  }
+
+  videoUrl(ex) {
+    if (ex.video) return ex.video;
+    if (VIDEOS[ex.id]) return VIDEOS[ex.id];
+    return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(ex.name + ' oefening techniek');
+  }
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem('bc-strength-v1');
+      if (raw) {
+        const saved = JSON.parse(raw) || {};
+        const base = this.makeProgram(1);
+        const fix = (list) => (list || []).map(p => {
+          if (!p || p.block || String(p.id || '').indexOf('db-') !== 0) return p;
+          const g = p.goal;
+          return Object.assign({}, p, { block: g === 'mobility' ? 'warmup' : (g === 'stability' || g === 'core') ? 'cooldown' : 'main' });
+        });
+        const norm = (list) => (list || []).map(p => p ? Object.assign({}, p, { block: normBlock(p.block) }) : p);
+        const savedProg = saved.program || {};
+        Object.keys(savedProg).forEach(d => { savedProg[d] = norm(fix(savedProg[d])); });
+        if (saved.clientStore) Object.keys(saved.clientStore).forEach(cid => {
+          const p = saved.clientStore[cid] && saved.clientStore[cid].program;
+          if (p) Object.keys(p).forEach(d => { p[d] = norm(fix(p[d])); });
+        });
+        this.setState(Object.assign({}, saved, {
+          clientId: saved.clientId || 'marleen',
+          clientStore: Object.assign(this.makeStore(), saved.clientStore || {}),
+          dayList: (saved.dayList && saved.dayList.length ? saved.dayList : DEFAULT_DAYS).map(d => Object.assign({}, d)),
+          program: { 1: savedProg[1] || base[1], 2: savedProg[2] || base[2], 3: savedProg[3] || base[3] },
+          rowBase: saved.rowBase == null ? ROW_BASE : saved.rowBase,
+          rowPct: saved.rowPct == null ? ROW_PCT : saved.rowPct,
+          rowWeek: saved.rowWeek == null ? ROW_WEEK : saved.rowWeek
+        }));
+      }
+    } catch (e) {}
+    this.timer = setInterval(() => {
+      if (this.state.rest && this.state.restLeft > 0) this.setState(s => ({ restLeft: s.restLeft - 1 }));
+      else if (this.state.rest && this.state.restLeft <= 0) this.setState({ rest: null });
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  persist(patch) {
+    this.setState(patch, () => {
+      try {
+        const s = this.state;
+        localStorage.setItem('bc-strength-v1', JSON.stringify({
+          variant: s.variant, day: s.day, log: s.log, done: s.done,
+          program: s.program, poolShift: s.poolShift, note: s.note, pain: s.pain, rpe: s.rpe,
+          clientId: s.clientId, clientStore: s.clientStore, reps: s.reps, removed: s.removed, dropped: s.dropped, dayList: s.dayList,
+          rowBase: s.rowBase, rowPct: s.rowPct, rowWeek: s.rowWeek
+        }));
+      } catch (e) {}
+    });
+  }
+
+  fmt(n) { return String(Math.round(n * 10) / 10).replace('.', ','); }
+
+  pool(list, count, offset) {
+    const out = []; const n = list.length;
+    for (let i = 0; i < count; i++) out.push(list[(offset + i * 3) % n]);
+    return out;
+  }
+
+  rowMinutes(weekOffset) {
+    const s = this.state;
+    const base = Number(s.rowBase) || ROW_BASE;
+    const pct = s.rowPct == null || isNaN(Number(s.rowPct)) ? ROW_PCT : Number(s.rowPct);
+    const w = Math.max(0, (Number(s.rowWeek) || 0) + (weekOffset || 0));
+    return Math.round(base * Math.pow(1 + pct / 100, w) * 10) / 10;
+  }
+
+  rowExercise() {
+    const min = this.rowMinutes(0);
+    return {
+      id: 'd3-row', block: 'main', rowing: true, name: 'Roeien · continu tempo', type: 'time', unit: 'min',
+      sets: 1, reps: min, rest: 0, load: 0,
+      note: 'Week ' + (this.state.rowWeek + 1) + ' van de opbouw: ' + this.fmt(min) + ' min aan een tempo dat je kan volhouden (praten mag nog net). Vorige week was ' + this.fmt(this.rowMinutes(-1)) + ' min — elke week +' + this.state.rowPct + '%.'
+    };
+  }
+
+  dayEntry(n) {
+    const list = this.state.dayList || DEFAULT_DAYS;
+    return list.find(d => d.n === (n === undefined ? this.state.day : n)) || list[0] || DEFAULT_DAYS[0];
+  }
+
+  dayExercises(day) {
+    const entry = this.dayEntry(day);
+    const own = (this.state.program[day] || []).map(e => Object.assign({}, e, { block: normBlock(e.block), own: true }));
+    let pooled = [];
+    if (entry && entry.rotate) {
+      const off = this.state.week + this.state.poolShift + (day === 2 ? 4 : 0);
+      pooled = this.pool(MOB_POOL, 3, off + 1).map(e => Object.assign({ block: 'warmup', pool: 'mobiliteit', sets: 2, rest: 30, load: 0 }, e, { block: 'warmup' }))
+        .concat(this.pool(CORE_POOL, 3, off).map(e => Object.assign({ block: 'cooldown', pool: 'core', sets: 3, rest: 45, load: e.load || 0 }, e, { block: 'cooldown' })));
+    }
+    const all = own.concat(pooled);
+    if (entry && entry.row) all.push(this.rowExercise());
+    const dropped = this.state.dropped || {};
+    const pfx = this.state.clientId + ':' + day + ':';
+    const order = { warmup: 0, main: 1, cooldown: 2 };
+    return all.filter(e => !dropped[pfx + e.id]).sort((a, b) => order[a.block] - order[b.block]);
+  }
+
+  setDayField(n, field, value) {
+    this.persist(st => ({
+      savedAt: 'Opgeslagen',
+      dayList: (st.dayList || []).map(d => d.n === n ? Object.assign({}, d, { [field]: value }) : d)
+    }));
+  }
+
+  addDay() {
+    this.persist(st => {
+      const list = st.dayList || [];
+      const n = list.reduce((a, d) => Math.max(a, d.n), 0) + 1;
+      return {
+        savedAt: 'Trainingsdag toegevoegd', day: n, dayEdit: n,
+        dayList: list.concat([{ n: n, title: 'Training ' + n, rotate: false, row: false }]),
+        program: Object.assign({}, st.program, { [n]: [] })
+      };
+    });
+  }
+
+  removeDay(n) {
+    this.persist(st => {
+      const list = (st.dayList || []).filter(d => d.n !== n);
+      const program = Object.assign({}, st.program);
+      delete program[n];
+      return {
+        savedAt: 'Trainingsdag verwijderd', dayList: list, program: program,
+        day: st.day === n ? (list[0] ? list[0].n : 1) : st.day, dayEdit: null, open: null
+      };
+    });
+  }
+
+  setBlock(id, block) {
+    this.persist(st => ({
+      savedAt: 'Blok gewijzigd',
+      program: Object.assign({}, st.program, {
+        [st.day]: (st.program[st.day] || []).map(p => p.id === id ? Object.assign({}, p, { block: block }) : p)
+      })
+    }));
+  }
+
+  unitOf(ex) { return ex.unit ? ex.unit : (ex.type === 'time' && !ex.load ? 'sec' : 'kg'); }
+
+  targetLabel(ex) {
+    if (ex.unit === 'min') return this.fmt(ex.reps) + ' min';
+    return ex.type === 'time' && !ex.load ? ex.reps + ' sec' : ex.reps + '×';
+  }
+
+  prevValue(ex, i) {
+    if (ex.unit === 'min') return this.fmt(this.rowMinutes(-1)) + ' min';
+    const seed = ex.type === 'time' && !ex.load ? ex.reps - 5 : (ex.load || 0);
+    if (ex.unit === 'band') return 'groene band';
+    const v = seed <= 0 ? 0 : Math.max(0, seed - (i === 0 ? 0 : 0) - 2.5);
+    return this.fmt(v) + ' ' + this.unitOf(ex);
+  }
+
+  setCount(ex) {
+    const removed = this.state.removed || {};
+    let n = 0;
+    for (let i = 0; i < ex.sets; i++) if (!removed[ex.id + ':' + i]) n++;
+    return n;
+  }
+
+  currentReps(ex, i) {
+    const k = ex.id + ':' + i;
+    const r = (this.state.reps || {})[k];
+    return r === undefined ? ex.reps : r;
+  }
+
+  setReps(ex, i, v) {
+    const k = ex.id + ':' + i;
+    this.persist(s => ({ reps: Object.assign({}, s.reps || {}, { [k]: Math.max(1, v) }) }));
+  }
+
+  bumpReps(ex, i, d) {
+    this.setReps(ex, i, (Number(this.currentReps(ex, i)) || 0) + d);
+  }
+
+  removeSet(ex, i) {
+    const k = ex.id + ':' + i;
+    this.persist(s => {
+      const removed = Object.assign({}, s.removed || {}, { [k]: true });
+      const done = Object.assign({}, s.done);
+      delete done[k];
+      return { removed: removed, done: done };
+    });
+  }
+
+  restoreSets(ex) {
+    this.persist(s => {
+      const removed = Object.assign({}, s.removed || {});
+      Object.keys(removed).forEach(k => { if (k.split(':')[0] === ex.id) delete removed[k]; });
+      return { removed: removed };
+    });
+  }
+
+  currentValue(ex, i) {
+    const k = ex.id + ':' + i;
+    if (this.state.log[k] !== undefined) return this.state.log[k];
+    return ex.type === 'time' && !ex.load ? ex.reps : (ex.load || 0);
+  }
+
+  setLog(ex, i, v) {
+    const k = ex.id + ':' + i;
+    this.persist(s => ({ log: Object.assign({}, s.log, { [k]: v }) }));
+  }
+  bump(ex, i, d) {
+    const cur = Number(this.currentValue(ex, i)) || 0;
+    this.setLog(ex, i, Math.max(0, Math.round((cur + d) * 10) / 10));
+  }
+  toggleSet(ex, i) {
+    const k = ex.id + ':' + i;
+    this.persist(s => {
+      const done = Object.assign({}, s.done);
+      if (done[k]) delete done[k]; else done[k] = true;
+      return { done: done };
+    });
+    if (!this.state.done[ex.id + ':' + i]) this.setState({ rest: ex.name, restLeft: ex.rest, restTotal: ex.rest });
+  }
+
+  seg(active) {
+    return 'padding:9px 16px;border:0;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:all .14s;' +
+      (active ? 'background:linear-gradient(135deg,#2c9dfd,#1f5dc4);color:#fff' : 'background:transparent;color:#8b8f94');
+  }
+  segLight(active) {
+    return 'padding:9px 18px;border:0;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:all .14s;' +
+      (active ? 'background:#000;color:#fff' : 'background:transparent;color:#7c8794');
+  }
+
+  renderVals() {
+    const s = this.state;
+    const exs = this.dayExercises(s.day);
+    const totalSets = exs.reduce((a, e) => a + this.setCount(e), 0);
+    const doneCount = Object.keys(s.done).length;
+
+    const mkSets = (ex) => {
+      const unit = this.unitOf(ex);
+      const arr = [];
+      const removed = s.removed || {};
+      let shown = 0;
+      for (let i = 0; i < ex.sets; i++) {
+        const k = ex.id + ':' + i;
+        if (removed[k]) continue;
+        shown++;
+        const isDone = !!s.done[k];
+        const reps = this.currentReps(ex, i);
+        const isMin = ex.unit === 'min';
+        arr.push({
+          key: k, label: isMin ? 'Roeitijd' : 'Set ' + shown,
+          target: this.targetLabel(ex),
+          reps: reps,
+          repsUnit: ex.type === 'time' ? 'sec' : 'herh.',
+          showReps: !isMin,
+          repsColStyle: isMin ? 'display:none' : 'width:86px;flex:none',
+          repsBlockStyle: isMin ? 'display:none' : 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:#f4f6f8;margin-bottom:12px',
+          onReps: (e) => this.setReps(ex, i, Number(e.target.value)),
+          onRepsInc: () => this.bumpReps(ex, i, ex.type === 'time' ? 5 : 1),
+          onRepsDec: () => this.bumpReps(ex, i, ex.type === 'time' ? -5 : -1),
+          onRemove: () => this.removeSet(ex, i),
+          canRemove: this.setCount(ex) > 1,
+          removeStyle: 'flex:none;width:34px;height:34px;border-radius:10px;border:1.5px solid #e8ebee;background:#fff;color:#c2c8cf;font-size:15px;cursor:pointer;transition:all .14s' +
+            (isMin ? ';display:none' : this.setCount(ex) > 1 ? '' : ';opacity:.35;pointer-events:none'),
+          removeStyleBig: 'padding:8px 14px;border-radius:999px;border:1.5px solid #e8ebee;background:#fff;color:#8b8f94;font-size:12.5px;cursor:pointer' +
+            (isMin ? ';display:none' : this.setCount(ex) > 1 ? '' : ';opacity:.35;pointer-events:none'),
+          value: this.currentValue(ex, i), unit: unit, step: unit === 'kg' ? 2.5 : (unit === 'min' ? 1 : 5),
+          prevLabel: 'vorige: ' + this.prevValue(ex, i),
+          onChange: (e) => this.setLog(ex, i, Number(e.target.value)),
+          onInc: () => this.bump(ex, i, unit === 'kg' ? 2.5 : (unit === 'min' ? 1 : 5)),
+          onDec: () => this.bump(ex, i, unit === 'kg' ? -2.5 : (unit === 'min' ? -1 : -5)),
+          onToggle: () => this.toggleSet(ex, i),
+          checkStyle: 'flex:none;width:40px;height:40px;border-radius:12px;font-size:16px;cursor:pointer;transition:all .14s;border:1.5px solid ' +
+            (isDone ? '#1f5dc4;background:linear-gradient(135deg,#2c9dfd,#1f5dc4);color:#fff' : '#e8ebee;background:#fff;color:#c2c8cf'),
+          blockStyle: 'border-radius:14px;padding:16px;border:1.5px solid ' + (isDone ? 'rgba(44,157,253,.45);background:rgba(44,157,253,.06)' : '#e8ebee;background:#fff'),
+          bigCheckStyle: 'margin-top:12px;width:100%;height:52px;border-radius:999px;font-size:15px;font-weight:600;cursor:pointer;transition:all .14s;border:0;' +
+            (isDone ? 'background:rgba(44,157,253,.16);color:#1f5dc4' : 'background:#000;color:#fff'),
+          bigCheckLabel: isDone ? '✓ Set afgevinkt' : 'Set afvinken'
+        });
+      }
+      return arr;
+    };
+
+    const mkEx = (ex) => {
+      const removedAll = s.removed || {};
+      const dn = [];
+      for (let i = 0; i < ex.sets; i++) if (s.done[ex.id + ':' + i] && !removedAll[ex.id + ':' + i]) dn.push(i);
+      const shownSets = this.setCount(ex);
+      const complete = dn.length === shownSets;
+      let anyRemoved = false;
+      Object.keys(removedAll).forEach(k => { if (k.split(':')[0] === ex.id) anyRemoved = true; });
+      const isOpen = s.open === ex.id;
+      const unit = this.unitOf(ex);
+      return {
+        id: ex.id, name: ex.name, isOpen: isOpen, note: ex.note || '',
+        meta: ex.unit === 'min'
+          ? this.fmt(ex.reps) + ' min · vorige week ' + this.fmt(this.rowMinutes(-1)) + ' min · +' + s.rowPct + '%'
+          : shownSets + ' × ' + (ex.type === 'time' && !ex.load ? ex.reps + ' sec' : ex.reps) +
+            (unit === 'kg' && ex.load ? ' · ' + this.fmt(ex.load) + ' kg' : '') + ' · rust ' + ex.rest + 's',
+        hasRest: ex.rest > 0,
+        video: this.videoUrl(ex),
+        restLabel: ex.rest + ' sec',
+        cardStyle: 'background:#fff;border-radius:14px;overflow:hidden;transition:box-shadow .14s;border:1.5px solid ' +
+          (complete ? 'rgba(44,157,253,.4)' : '#e8ebee') + ';box-shadow:' + (isOpen ? '0 4px 10px rgba(10,14,20,.08),0 16px 32px rgba(10,14,20,.08)' : '0 1px 2px rgba(10,14,20,.05)'),
+        ringStyle: 'flex:none;width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;' +
+          (complete ? 'background:linear-gradient(135deg,#2c9dfd,#1f5dc4);color:#fff' : 'background:#f4f6f8;color:#8b8f94'),
+        ringLabel: complete ? '✓' : dn.length + '/' + shownSets,
+        anyRemoved: anyRemoved,
+        restore: () => this.restoreSets(ex),
+        chevStyle: 'flex:none;font-size:20px;color:#c2c8cf;transition:transform .14s;transform:rotate(' + (isOpen ? '90' : '0') + 'deg)',
+        toggle: () => this.setState({ open: isOpen ? null : ex.id }),
+        startRest: () => this.setState({ rest: ex.name, restLeft: ex.rest, restTotal: ex.rest })
+      };
+    };
+
+    const blocks = BLOCKS.map(b => {
+      const list = exs.filter(e => e.block === b.id);
+      return { title: b.nl, count: list.length + (list.length === 1 ? ' oefening' : ' oefeningen'), exercises: list.map(mkEx) };
+    });
+    blocks.forEach(b => b.exercises.forEach((e, i) => { e.sets = mkSets(exs.find(x => x.id === e.id)); }));
+    const visibleBlocks = blocks.filter(b => !b.hide && b.exercises.length);
+
+    const volume = Object.keys(s.done).reduce((a, k) => {
+      const id = k.split(':')[0]; const idx = Number(k.split(':')[1]);
+      const ex = exs.find(x => x.id === id);
+      if (!ex || this.unitOf(ex) !== 'kg') return a;
+      return a + Number(this.currentValue(ex, idx)) * Number(this.currentReps(ex, idx));
+    }, 0);
+
+    const chartSets = {
+      'd1-squat': [40, 42.5, 45, 45, 47.5, 50, 52.5, 55],
+      'd1-bench': [25, 27.5, 27.5, 30, 30, 30, 32.5, 32.5],
+      'd1-deadlift': [50, 55, 57.5, 60, 62.5, 65, 67.5, 70],
+      'd2-bentrow': [20, 22.5, 25, 25, 27.5, 27.5, 30, 30]
+    };
+    const chartNames = { 'd1-squat': 'Squat', 'd1-bench': 'Bench press', 'd1-deadlift': 'Deadlift', 'd2-bentrow': 'Bent over row' };
+    const series = chartSets[s.chart];
+    const max = Math.max.apply(null, series);
+    const chartBars = series.map((v, i) => ({
+      val: this.fmt(v), label: 'w' + (20 + i),
+      barStyle: 'width:100%;border-radius:8px 8px 3px 3px;height:' + Math.round((v / max) * 100 * 0.78 + 12) + '%;background:' +
+        (i === series.length - 1 ? 'linear-gradient(180deg,#2c9dfd,#1f5dc4)' : '#dde3ea')
+    }));
+
+    const volumes = [
+      { label: 'Week 22', v: 4.1 }, { label: 'Week 23', v: 4.4 }, { label: 'Week 24', v: 4.3 },
+      { label: 'Week 25', v: 5.0 }, { label: 'Week 26', v: 5.2 }, { label: 'Week 27', v: 5.6 }
+    ];
+    const vmax = 6;
+
+    const prog = s.program[s.day];
+    const editorRows = this.dayExercises(s.day).filter(ex => !ex.rowing).map((ex, i) => {
+      const own = (s.program[s.day] || []).some(p => p.id === ex.id);
+      const isMain = own;
+      const unit = this.unitOf(ex);
+      const upd = (field) => (e) => {
+        const v = Number(e.target.value);
+        this.persist(st => ({
+          savedAt: 'Opgeslagen',
+          program: Object.assign({}, st.program, {
+            [st.day]: (st.program[st.day] || []).map(p => p.id === ex.id ? Object.assign({}, p, { [field]: v }) : p)
+          })
+        }));
+      };
+      return {
+        name: ex.name, sub: isMain ? 'vaste oefening' : 'uit ' + (ex.pool || 'pool') + ' · rouleert wekelijks',
+        block: ex.block, blockLabel: BLOCK_NL[ex.block],
+        blockOptions: BLOCKS.map(b => ({ label: b.nl, value: b.id })),
+        onBlock: (e) => this.setBlock(ex.id, e.target.value),
+        blockSelectStyle: 'height:38px;padding:0 8px;border:1.5px solid #e8ebee;border-radius:9px;font-size:13px;color:#000;background:#fff;outline:none;width:100%' + (own ? '' : ';display:none'),
+        blockTextStyle: 'font-size:12.5px;color:#8b8f94' + (own ? ';display:none' : ''),
+        tag: ex.block === 'warmup' ? 'W' : ex.block === 'cooldown' ? 'C' : 'M',
+        tagStyle: 'flex:none;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:Exo,sans-serif;font-style:italic;font-weight:900;font-size:12px;' +
+          (isMain ? 'background:linear-gradient(135deg,#2c9dfd,#1f5dc4);color:#fff' : 'background:#f4f6f8;color:#8b8f94'),
+        rowStyle: 'display:grid;grid-template-columns:34px 1.4fr .8fr .45fr .6fr .8fr .5fr 1fr 40px;gap:10px;padding:12px 0;border-bottom:1px solid #f4f6f8;align-items:center' + (isMain ? '' : ';opacity:.72'),
+        sets: ex.sets, reps: ex.reps, load: ex.load || 0, rest: ex.rest, step: 2.5,
+        unit: 'kg', unitLabel: unit !== 'kg' && !ex.load ? '' : 'kg',
+        loadStyle: 'height:38px;padding:0 10px;border:1.5px solid #e8ebee;border-radius:9px;font-size:14px;color:#000;outline:none;width:100%' +
+          (unit !== 'kg' && !ex.load ? ';display:none' : ''),
+        bwStyle: 'font-size:12.5px;color:#c2c8cf' + (unit !== 'kg' && !ex.load ? '' : ';display:none'),
+        onSets: upd('sets'), onReps: upd('reps'), onLoad: upd('load'), onRest: upd('rest'),
+        onDrop: () => this.dropExercise(ex.id),
+        onUp: () => this.moveExercise(ex.id, -1),
+        onDown: () => this.moveExercise(ex.id, 1),
+        moveStyle: 'width:26px;height:18px;border:1.5px solid #e8ebee;background:#fff;border-radius:6px;font-size:10px;line-height:1;color:#8b8f94;cursor:pointer;padding:0' + (own ? '' : ';opacity:.3;pointer-events:none'),
+        video: this.videoUrl(ex),
+        onVideo: (e) => {
+          const v = e.target.value;
+          this.persist(st => ({
+            savedAt: 'Opgeslagen',
+            program: Object.assign({}, st.program, {
+              [st.day]: (st.program[st.day] || []).map(p => p.id === ex.id ? Object.assign({}, p, { video: v }) : p)
+            })
+          }));
+        }
+      };
+    });
+
+    const rpeLabels = ['Licht', 'Vlot', 'Goed', 'Zwaar', 'Max'];
+
+    const q = (s.libQuery || '').toLowerCase().trim();
+    const mus = s.libMuscle || 'all';
+    const goal = s.libGoal || 'all';
+    const dbFiltered = (s.libEx || []).filter(item =>
+      (goal === 'all' || item.goal === goal) &&
+      (mus === 'all' || item.muscle === mus) &&
+      (!q || item.name.toLowerCase().indexOf(q) >= 0 || (item.equipment || '').toLowerCase().indexOf(q) >= 0));
+
+    return {
+      ctaFull: { style: { width: '100%', height: '54px', fontSize: '16px', padding: '0' } },
+      kpiCard: { style: { padding: '18px 20px', borderRadius: '14px', height: '100%' } },
+      isClient: s.role === 'client', isTrainer: s.role === 'trainer', isData: s.role === 'data',
+      goClient: () => this.setState({ role: 'client' }),
+      goTrainer: () => this.setState({ role: 'trainer' }),
+      goData: () => this.setState({ role: 'data' }),
+      resetAll: () => { try { localStorage.removeItem('bc-strength-v1'); } catch (e) {} this.persist({ dayList: DEFAULT_DAYS.map(d => Object.assign({}, d)), day: 1, log: {}, done: {}, rpe: null, note: '', pain: false, program: { 1: this.cloneMain(DAY1_MAIN), 2: this.cloneMain(DAY2_MAIN), 3: this.cloneMain(DAY3_STAB) }, rowBase: ROW_BASE, rowPct: ROW_PCT, rowWeek: ROW_WEEK, screen: 'home', reps: {}, removed: {}, clientStore: this.makeStore(), clientId: 'marleen' }); },
+      tabClientStyle: this.seg(s.role === 'client'),
+      tabTrainerStyle: this.seg(s.role === 'trainer'),
+      tabDataStyle: this.seg(s.role === 'data'),
+
+      isVarA: s.variant === 'A', isVarB: s.variant === 'B',
+      setVarA: () => this.persist({ variant: 'A' }),
+      setVarB: () => this.persist({ variant: 'B' }),
+      varAStyle: 'text-align:left;padding:14px 16px;border-radius:12px;cursor:pointer;background:#fff;transition:all .14s;border:1.5px solid ' + (s.variant === 'A' ? '#2c9dfd' : '#e8ebee'),
+      varBStyle: 'text-align:left;padding:14px 16px;border-radius:12px;cursor:pointer;background:#fff;transition:all .14s;border:1.5px solid ' + (s.variant === 'B' ? '#2c9dfd' : '#e8ebee'),
+
+      isHome: s.screen === 'home', isWorkout: s.screen === 'workout', isDone: s.screen === 'done',
+      startWorkout: () => this.setState({ screen: 'workout' }),
+      goHome: () => this.setState({ screen: 'home' }),
+      finishWorkout: () => this.setState({ screen: 'done' }),
+      sendToCoach: () => this.persist({ screen: 'home', role: 'trainer' }),
+
+      todayLabel: 'Donderdag 2 augustus', weekNo: s.week,
+      dayTitle: this.dayEntry().title,
+      clientName: this.currentClient().naam,
+      clientMeta: this.currentClient().meta + ' · ' + this.currentClient().freq,
+      clientFocus: this.currentClient().focus,
+      clientFirst: this.currentClient().naam.split(' ')[0].replace('&', 'en'),
+      addClient: () => this.setState({ savedAt: 'Nieuwe klant: kies een sjabloon en pas het schema aan (nog niet actief in dit prototype)' }),
+      clientTabs: CLIENTS.map(c => ({
+        label: c.naam, sub: c.meta, pick: () => this.switchClient(c.id),
+        style: 'text-align:left;padding:12px 16px;border-radius:12px;cursor:pointer;background:#fff;transition:all .14s;border:1.5px solid ' + (c.id === s.clientId ? '#2c9dfd' : '#e8ebee'),
+        nameStyle: 'font-size:14px;font-weight:600;color:' + (c.id === s.clientId ? '#000' : '#454e58'),
+        days: (c.id === s.clientId ? (s.dayList || []).length : c.days.length) + ' trainingsdagen · ' + c.freq
+      })),
+      dayTabs: (s.dayList || []).map(d => ({
+        label: 'Training ' + d.n, full: d.title, pick: () => this.persist({ day: d.n, open: null }),
+        style: this.segLight(s.day === d.n) + ';flex:none;white-space:nowrap;padding:9px 14px;font-size:12.5px;border:1.5px solid ' + (s.day === d.n ? '#000' : '#e8ebee'),
+        edStyle: this.segLight(s.day === d.n) + ';padding:11px 18px;white-space:nowrap;border:1.5px solid ' + (s.day === d.n ? '#000' : '#e8ebee')
+      })),
+      dayMeta: exs.length + ' oefeningen · ' + totalSets + ' sets' + (this.dayEntry().row ? ' · incl. ' + this.fmt(this.rowMinutes(0)) + ' min roeien' : ''),
+      dayTitleValue: this.dayEntry().title,
+      onDayTitle: (e) => this.setDayField(s.day, 'title', e.target.value),
+      dayRotate: !!this.dayEntry().rotate,
+      toggleRotate: () => this.setDayField(s.day, 'rotate', !this.dayEntry().rotate),
+      rotateStyle: 'display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;background:#fff;text-align:left;border:1.5px solid ' + (this.dayEntry().rotate ? '#2c9dfd' : '#e8ebee'),
+      rotateDotStyle: 'flex:none;width:18px;height:18px;border-radius:6px;border:1.5px solid ' + (this.dayEntry().rotate ? '#2c9dfd;background:#2c9dfd' : '#c2c8cf;background:#fff'),
+      dayRow: !!this.dayEntry().row,
+      toggleRow: () => this.setDayField(s.day, 'row', !this.dayEntry().row),
+      rowToggleStyle: 'display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;background:#fff;text-align:left;border:1.5px solid ' + (this.dayEntry().row ? '#2c9dfd' : '#e8ebee'),
+      rowToggleDotStyle: 'flex:none;width:18px;height:18px;border-radius:6px;border:1.5px solid ' + (this.dayEntry().row ? '#2c9dfd;background:#2c9dfd' : '#c2c8cf;background:#fff'),
+      isDay3: !!this.dayEntry().row,
+      poolRowStyle: this.dayEntry().rotate ? '' : 'display:none',
+      onAddDay: () => this.addDay(),
+      onRemoveDay: () => this.removeDay(s.day),
+      canRemoveDay: (s.dayList || []).length > 1,
+      removeDayStyle: 'padding:11px 18px;border:1.5px solid #e8ebee;background:#fff;border-radius:12px;font-size:13px;color:#8b8f94;cursor:pointer' + ((s.dayList || []).length > 1 ? '' : ';opacity:.4;pointer-events:none'),
+      rowBase: s.rowBase, rowPct: s.rowPct, rowWeek: s.rowWeek + 1,
+      rowNow: this.fmt(this.rowMinutes(0)), rowNext: this.fmt(this.rowMinutes(1)),
+      onRowBase: (e) => this.persist({ rowBase: Number(e.target.value) || 1, savedAt: 'Opgeslagen' }),
+      onRowPct: (e) => this.persist({ rowPct: Number(e.target.value) || 0, savedAt: 'Opgeslagen' }),
+      onRowWeek: (e) => this.persist({ rowWeek: Math.max(0, (Number(e.target.value) || 1) - 1), savedAt: 'Opgeslagen' }),
+      rowLadder: [0, 1, 2, 3, 4, 5, 6, 7].map(i => ({
+        label: 'w' + (i + 1), val: this.fmt(this.rowMinutes(i - s.rowWeek)),
+        barStyle: 'width:100%;border-radius:8px 8px 3px 3px;height:' + Math.round((this.rowMinutes(i - s.rowWeek) / this.rowMinutes(7 - s.rowWeek)) * 88 + 12) + '%;background:' +
+          (i === s.rowWeek ? 'linear-gradient(180deg,#2c9dfd,#1f5dc4)' : i < s.rowWeek ? '#dde3ea' : '#eef1f4')
+      })),
+
+      weekDots: ['M', 'D', 'W', 'D', 'V', 'Z', 'Z'].map((l, i) => ({
+        letter: l, mark: i === 1 ? '1' : (i === 3 ? '2' : ''),
+        dotStyle: 'width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;' +
+          (i === 1 ? 'background:#000;color:#fff' : i === 3 ? 'background:linear-gradient(135deg,#2c9dfd,#1f5dc4);color:#fff' : 'background:#f4f6f8;color:#c2c8cf')
+      })),
+      recentSessions: [
+        { tag: 'T2', title: 'Full body B', sub: '13 oefeningen · 5,4 ton volume', when: 'ma' },
+        { tag: 'T1', title: 'Full body A', sub: 'Squat 52,5 kg · nieuw record', when: 'do' },
+        { tag: 'T2', title: 'Full body B', sub: 'Lunge terug naar 12 kg', when: 'vr' }
+      ],
+
+      blocks: visibleBlocks,
+      progressLabel: doneCount + ' van ' + totalSets + ' sets afgewerkt',
+      progressPct: Math.round((doneCount / totalSets) * 100) + '%',
+      progressBarStyle: 'height:100%;border-radius:999px;transition:width .3s;background:linear-gradient(90deg,#2c9dfd,#1f5dc4);width:' + Math.round((doneCount / totalSets) * 100) + '%',
+
+      restOn: !!s.rest, restEx: s.rest || '',
+      restClock: Math.floor(s.restLeft / 60) + ':' + String(s.restLeft % 60).padStart(2, '0'),
+      restBarStyle: 'height:100%;border-radius:999px;background:#2c9dfd;transition:width 1s linear;width:' + Math.round((s.restLeft / (s.restTotal || 90)) * 100) + '%',
+      stopRest: () => this.setState({ rest: null }),
+
+      doneSets: doneCount, doneVolume: this.fmt(volume), donePRs: 2,
+      rpeOptions: rpeLabels.map((l, i) => ({
+        label: l, pick: () => this.persist({ rpe: i }),
+        style: 'flex:1;padding:12px 4px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .14s;border:1.5px solid ' +
+          (s.rpe === i ? '#1f5dc4;background:linear-gradient(135deg,#2c9dfd,#1f5dc4);color:#fff' : '#e8ebee;background:#fff;color:#7c8794')
+      })),
+      noteVal: s.note, onNote: (e) => this.persist({ note: e.target.value }),
+      togglePain: () => this.persist({ pain: !s.pain }),
+      painStyle: 'margin-top:14px;width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;cursor:pointer;text-align:left;background:#fff;transition:all .14s;border:1.5px solid ' + (s.pain ? '#ff8b82' : '#e8ebee') + ';color:' + (s.pain ? '#c9463c' : '#7c8794'),
+      painDotStyle: 'flex:none;width:22px;height:22px;border-radius:7px;border:1.5px solid ' + (s.pain ? '#ff8b82;background:#ff8b82' : '#c2c8cf;background:#fff'),
+
+      rationale: [
+        { t: 'Vorige waarde is de standaard', d: 'Het veld staat al ingevuld met wat de klant vorige keer deed. Niks aanpassen = vorige prestatie herhalen; dat is de meest gemaakte keuze.' },
+        { t: 'Herhalingen en sets zijn een richtlijn', d: 'De klant past per set het aantal herhalingen aan en kan een set schrappen als het niet lukt. Het doel blijft grijs zichtbaar, zodat jij ziet waar afgeweken werd.' },
+        { t: 'Rust start ze zelf', d: 'De timer springt niet ongevraagd op. Ze start hem via de knop of automatisch bij het afvinken van een set — en kan hem altijd overslaan.' },
+        { t: 'Drie blokken, niet één lijst', d: 'Warming up → main → cooldown geeft ritme aan de sessie en houdt de scroll kort. Jij bepaalt per oefening in welk blok ze staat.' },
+        { t: 'Core en mobiliteit rouleren', d: 'Elke week kiest de app 3 + 3 oefeningen uit een pool. Jij kan de selectie forceren in de programma-editor.' }
+      ],
+
+      isTvA: s.trainerView === 'A', isTvB: s.trainerView === 'B',
+      setTvA: () => this.setState({ trainerView: 'A' }),
+      setTvB: () => this.setState({ trainerView: 'B' }),
+      tvAStyle: this.segLight(s.trainerView === 'A'),
+      tvBStyle: this.segLight(s.trainerView === 'B'),
+
+      kpis: [
+        { label: 'Trainingen 4 weken', value: '7 / 8', delta: '1 gemist (ziek, week 25)', deltaStyle: 'font-size:12px;color:#8b8f94;margin-top:6px' },
+        { label: 'Volume deze week', value: '5,6 t', delta: '+8% t.o.v. vorige week', deltaStyle: 'font-size:12px;color:#1f5dc4;margin-top:6px;font-weight:600' },
+        { label: 'Records deze maand', value: '5', delta: 'squat, deadlift, row', deltaStyle: 'font-size:12px;color:#8b8f94;margin-top:6px' },
+        { label: 'Pijnmeldingen', value: '1', delta: 'rechterknie · 26 juli', deltaStyle: 'font-size:12px;color:#c9463c;margin-top:6px;font-weight:600' }
+      ],
+      chartTabs: Object.keys(chartNames).map(k => ({
+        label: chartNames[k], pick: () => this.setState({ chart: k }),
+        style: 'padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .14s;border:1.5px solid ' +
+          (s.chart === k ? '#2c9dfd;background:rgba(44,157,253,.1);color:#1f5dc4' : '#e8ebee;background:#fff;color:#8b8f94')
+      })),
+      chartBars: chartBars,
+      chartInsight: chartNames[s.chart] + ': ' + this.fmt(series[0]) + ' → ' + this.fmt(series[series.length - 1]) + ' kg in 8 weken (+' + Math.round((series[series.length - 1] / series[0] - 1) * 100) + '%). Stapjes van 2,5 kg blijven haalbaar — volgende sessie doorzetten.',
+      volumeRows: volumes.map((v, i) => ({
+        label: v.label, val: this.fmt(v.v) + ' t',
+        fillStyle: 'height:100%;border-radius:999px;width:' + Math.round((v.v / vmax) * 100) + '%;background:' + (i === volumes.length - 1 ? 'linear-gradient(90deg,#2c9dfd,#1f5dc4)' : '#dde3ea')
+      })),
+      notes: [
+        { when: '31 juli', day: 'Full body B', pain: false, text: 'Lunges gingen vlotter dan vorige week, evenwicht voelt beter. Zwaarder mag.' },
+        { when: '26 juli', day: 'Full body A', pain: true, text: 'Rechterknie stak bij de reverse lunge vanaf set 2. Squat zelf was oké.' },
+        { when: '24 juli', day: 'Full body B', pain: false, text: 'Weinig geslapen, laatste twee sets row overgeslagen.' }
+      ],
+      lastSessionMeta: 'Full body B · vrijdag 31 juli · 52 min · zwaarte-score “Goed”',
+      sessionRows: [
+        { name: 'Lunge (per been)', target: '4 × 10', prev: '12 kg', actual: '14 kg', delta: '+2,5 kg' },
+        { name: 'Single romanian deadlift', target: '3 × 8', prev: '16 kg', actual: '16 kg', delta: '=' },
+        { name: 'Bent over row', target: '4 × 10', prev: '27,5 kg', actual: '30 kg', delta: '+2,5 kg' },
+        { name: 'Incline chest fly 45°', target: '3 × 12', prev: '8 kg', actual: '8 kg', delta: '=' },
+        { name: 'Lateral raise dumbbell', target: '3 × 14', prev: '5 kg', actual: '4 kg', delta: '−1 kg' },
+        { name: 'Hammer curl', target: '3 × 12', prev: '9 kg', actual: '9 kg', delta: '=' },
+        { name: 'Triceps kick back', target: '3 × 12', prev: '5 kg', actual: '5 kg', delta: '=' }
+      ].map(r => Object.assign(r, {
+        deltaStyle: 'font-size:13.5px;font-weight:600;color:' + (r.delta.indexOf('+') === 0 ? '#1f5dc4' : r.delta.indexOf('−') === 0 ? '#c9463c' : '#c2c8cf')
+      })),
+
+      editorRows: editorRows,
+      editorSaved: s.savedAt,
+      libOptions: LIBRARY.map((l, i) => ({ label: l.name + ' · ' + (l.type === 'time' ? l.reps + ' sec' : l.reps + ' herh.'), value: i })),
+      addPick: s.addPick || 0,
+      onAddPick: (e) => this.setState({ addPick: Number(e.target.value) }),
+      onAddExercise: () => this.addExercise(),
+      dbIdle: (s.libStatus || 'idle') === 'idle',
+      dbLoading: s.libStatus === 'loading',
+      dbOk: s.libStatus === 'ok',
+      dbFail: s.libStatus === 'fail',
+      loadDb: () => this.loadLibrary(),
+      dbCount: (s.libEx || []).length,
+      dbSources: (s.libSources || 0) === 2 ? '2 bronnen' : '1 bron',
+      dbFound: dbFiltered.length,
+      dbQuery: s.libQuery || '',
+      onDbQuery: (e) => this.setState({ libQuery: e.target.value }),
+      goalTabs: GOALS.map(g => ({
+        label: g.nl, pick: () => this.setState({ libGoal: g.id }),
+        style: 'padding:8px 15px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:all .14s;border:1.5px solid ' +
+          ((s.libGoal || 'all') === g.id ? '#000;background:#000;color:#fff' : '#e8ebee;background:#fff;color:#7c8794')
+      })),
+      muscleTabs: MUSCLES.map(m => ({
+        label: m.nl, pick: () => this.setState({ libMuscle: m.id }),
+        style: 'padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .14s;border:1.5px solid ' +
+          ((s.libMuscle || 'all') === m.id ? '#2c9dfd;background:rgba(44,157,253,.1);color:#1f5dc4' : '#e8ebee;background:#fff;color:#8b8f94')
+      })),
+      dbResults: dbFiltered.slice(0, 24).map(item => ({
+        name: item.name, muscle: MUSCLE_NL[item.muscle] || item.muscle,
+        sub: (GOAL_NL[item.goal] || '') + ' · ' + item.equipment + ' · ' + item.source,
+        image: item.image, add: () => this.addFromDb(item),
+        imgStyle: 'flex:none;width:52px;height:52px;border-radius:10px;background:#f4f6f8 center/cover no-repeat' +
+          (item.image ? ';background-image:url(' + item.image + ')' : '')
+      })),
+      dbMore: dbFiltered.length > 24 ? 'Nog ' + (dbFiltered.length - 24) + ' resultaten — verfijn je zoekterm.' : '',
+      nowrap: { style: { whiteSpace: 'nowrap' } },
+      rotatePool: () => this.persist(st => ({ poolShift: st.poolShift + 1, savedAt: 'Nieuwe selectie actief' })),
+
+      tables: [
+        { name: 'clients', desc: 'Klantprofiel', cols: [{ n: 'id', t: 'uuid pk' }, { n: 'naam', t: 'text' }, { n: 'geboortedatum', t: 'date' }, { n: 'coach_id', t: 'uuid fk' }] },
+        { name: 'programs', desc: 'Schema toegewezen aan een klant', cols: [{ n: 'id', t: 'uuid pk' }, { n: 'client_id', t: 'uuid fk' }, { n: 'naam', t: 'text' }, { n: 'actief_vanaf', t: 'date' }] },
+        { name: 'program_days', desc: 'Training 1 en 2', cols: [{ n: 'id', t: 'uuid pk' }, { n: 'program_id', t: 'uuid fk' }, { n: 'volgorde', t: 'int' }, { n: 'naam', t: 'text' }] },
+        { name: 'exercises', desc: 'Bibliotheek · seed uit free-exercise-db (publiek domein)', cols: [{ n: 'id', t: 'uuid pk' }, { n: 'externe_id', t: 'text' }, { n: 'primaire_spier', t: 'text' }, { n: 'materiaal', t: 'text' }, { n: 'naam', t: 'text' }, { n: 'type', t: "enum reps|time" }, { n: 'categorie', t: "enum kracht|core|mobiliteit|stabiliteit|cardio" }, { n: 'video_url', t: 'text' }] },
+        { name: 'program_items', desc: 'Oefening in een training, met doelen', cols: [{ n: 'id', t: 'uuid pk' }, { n: 'day_id', t: 'uuid fk' }, { n: 'exercise_id', t: 'uuid fk' }, { n: 'sets', t: 'int' }, { n: 'reps_of_sec', t: 'int' }, { n: 'doelgewicht', t: 'numeric' }, { n: 'rust_sec', t: 'int' }, { n: 'video_url_override', t: 'text' }] },
+        { name: 'sessions', desc: 'Eén uitgevoerde training', cols: [{ n: 'id', t: 'uuid pk' }, { n: 'client_id', t: 'uuid fk' }, { n: 'day_id', t: 'uuid fk' }, { n: 'gestart_op', t: 'timestamptz' }, { n: 'rpe', t: 'int 1-5' }, { n: 'opmerking', t: 'text' }, { n: 'pijn', t: 'boolean' }] },
+        { name: 'set_logs', desc: 'De kern: wat de klant écht deed', cols: [{ n: 'id', t: 'uuid pk' }, { n: 'session_id', t: 'uuid fk' }, { n: 'exercise_id', t: 'uuid fk' }, { n: 'set_nr', t: 'int' }, { n: 'gewicht_kg', t: 'numeric' }, { n: 'seconden', t: 'int' }, { n: 'reps', t: 'int' }, { n: 'afgevinkt', t: 'boolean' }] },
+        { name: 'exercise_pools', desc: 'Wekelijkse rotatie core/mobiliteit', cols: [{ n: 'program_id', t: 'uuid fk' }, { n: 'week', t: 'int' }, { n: 'exercise_ids', t: 'uuid[]' }] },
+        { name: 'progressions', desc: 'Automatische opbouw (bv. roeien +10%/week)', cols: [{ n: 'id', t: 'uuid pk' }, { n: 'program_item_id', t: 'uuid fk' }, { n: 'startwaarde', t: 'numeric' }, { n: 'eenheid', t: "enum min|kg|m" }, { n: 'stap_pct', t: 'numeric' }, { n: 'start_week', t: 'date' }] }
+      ],
+      endpoints: [
+        { m: 'GET', p: '/clients/:id/today', d: 'schema van vandaag incl. vorige waarden' },
+        { m: 'POST', p: '/sessions', d: 'start een sessie' },
+        { m: 'PATCH', p: '/sessions/:id/sets/:exerciseId/:setNr', d: 'log gewicht/tijd (autosave per veld)' },
+        { m: 'POST', p: '/sessions/:id/complete', d: 'afronden + rpe, opmerking, pijn' },
+        { m: 'GET', p: '/clients/:id/progress?exercise=', d: 'reeks voor de progressiegrafiek' },
+        { m: 'PUT', p: '/program-items/:id', d: 'coach past sets/reps/gewicht/rust aan' }
+      ].map(e => Object.assign(e, {
+        mStyle: 'flex:none;width:56px;font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:600;color:' + (e.m === 'GET' ? '#2c9dfd' : '#8bd48b')
+      })),
+      nextSteps: [
+        'Echte foto- of videodemo per oefening toevoegen (nu tekstuele techniek-tip) — vooral waardevol voor de 50+ doelgroep.',
+        'Offline-first: sets loggen zonder netwerk en syncen zodra er verbinding is. In de sportzaal is wifi vaak slecht.',
+        'Push-melding naar de coach bij een pijnmelding, in plaats van passief in het dashboard.',
+        'Automatische progressie-suggestie: als alle sets 2 sessies op rij gehaald worden, stel +2,5 kg voor.',
+        'Mobiliteit en stabiliteit worden nu afgeleid uit de dataset (categorie “stretching” = mobiliteit, plus trefwoorden zoals plank, balance, single leg, hold, carry). Wil je dat scherper, dan kan je die classificatie één keer manueel nakijken bij de import, of RepDB als tweede bron toevoegen — dat heeft expliciete “goals” en tags, gratis voor commercieel gebruik mits bronvermelding.',
+        'De open bibliotheek (free-exercise-db, ±870 oefeningen, publiek domein/Unlicense) één keer inlezen in je eigen exercises-tabel in plaats van live op te halen — sneller, offline beschikbaar en je kan eigen Nederlandse namen en video\'s toevoegen.',
+        'Schemasjablonen per klantprofiel (50+, duo, jonge sporter) zodat een nieuwe klant in enkele klikken een schema op maat krijgt — elke oefening blijft daarna individueel aanpasbaar.'
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>
