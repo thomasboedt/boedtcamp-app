@@ -1,25 +1,30 @@
-import { getConnectionString } from "@netlify/database";
+import { getEnvironment } from "@netlify/runtime-utils";
 
-// Temporary diagnostic endpoint to find out why getConnectionString() fails
-// at runtime even though the deploy shows a database_branch_id attached.
-// Deliberately standalone (no import from server/src) so it can't be taken
-// down by the same crash-on-import that a bad DB connection causes elsewhere.
-// Only exposes env var *names*, never values.
+// Temporary diagnostic endpoint. @netlify/database's getConnectionString()
+// reads the key "NETLIFY_DB_URL" via getEnvironment(), which prefers the
+// globalThis.Netlify.env binding (Function-runtime-only, not in process.env)
+// and falls back to process.env. This checks both sources directly.
 export const handler = async () => {
-  const allEnvKeys = Object.keys(process.env).sort();
-  const relevantEnvKeys = allEnvKeys.filter((k) => /DATABASE|NETLIFY_DB|NEON|NETLIFY_/i.test(k));
+  const hasNetlifyGlobal = typeof (globalThis as any).Netlify !== "undefined";
+  const env = getEnvironment();
+  const fromGetEnvironment = env.get("NETLIFY_DB_URL");
+  const fromProcessEnv = process.env.NETLIFY_DB_URL;
 
-  let getConnectionStringResult: string;
-  try {
-    const cs = getConnectionString();
-    getConnectionStringResult = cs ? `ok, length=${cs.length}` : "returned empty/falsy value";
-  } catch (e) {
-    getConnectionStringResult = `threw: ${e instanceof Error ? e.message : String(e)}`;
-  }
+  const allProcessEnvKeys = Object.keys(process.env).sort();
 
   return {
     statusCode: 200,
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ allEnvKeysCount: allEnvKeys.length, relevantEnvKeys, getConnectionStringResult }, null, 2),
+    body: JSON.stringify(
+      {
+        hasNetlifyGlobal,
+        netlifyDbUrlViaGetEnvironment: fromGetEnvironment ? `present, length=${fromGetEnvironment.length}` : "missing",
+        netlifyDbUrlViaProcessEnv: fromProcessEnv ? `present, length=${fromProcessEnv.length}` : "missing",
+        allProcessEnvKeysCount: allProcessEnvKeys.length,
+        allProcessEnvKeys,
+      },
+      null,
+      2
+    ),
   };
 };
