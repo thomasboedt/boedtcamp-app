@@ -1,30 +1,25 @@
 import { getEnvironment } from "@netlify/runtime-utils";
 
-// Temporary diagnostic endpoint. @netlify/database's getConnectionString()
-// reads the key "NETLIFY_DB_URL" via getEnvironment(), which prefers the
-// globalThis.Netlify.env binding (Function-runtime-only, not in process.env)
-// and falls back to process.env. This checks both sources directly.
-export const handler = async () => {
+// Temporary diagnostic endpoint (v2 function format) to confirm secret env
+// vars and NETLIFY_DB_URL become visible once the runtime is v2.
+export default async () => {
   const hasNetlifyGlobal = typeof (globalThis as any).Netlify !== "undefined";
   const env = getEnvironment();
   const fromGetEnvironment = env.get("NETLIFY_DB_URL");
   const fromProcessEnv = process.env.NETLIFY_DB_URL;
+  const jwtSecretPresent = Boolean(process.env.JWT_SECRET) || Boolean(env.get("JWT_SECRET"));
 
-  const allProcessEnvKeys = Object.keys(process.env).sort();
-
-  return {
-    statusCode: 200,
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(
+  return new Response(
+    JSON.stringify(
       {
         hasNetlifyGlobal,
         netlifyDbUrlViaGetEnvironment: fromGetEnvironment ? `present, length=${fromGetEnvironment.length}` : "missing",
         netlifyDbUrlViaProcessEnv: fromProcessEnv ? `present, length=${fromProcessEnv.length}` : "missing",
-        allProcessEnvKeysCount: allProcessEnvKeys.length,
-        allProcessEnvKeys,
+        jwtSecretPresent,
       },
       null,
       2
     ),
-  };
+    { headers: { "content-type": "application/json" } }
+  );
 };
