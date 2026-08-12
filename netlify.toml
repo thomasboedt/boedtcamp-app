@@ -1,4 +1,3 @@
-# Force a fresh Netlify build so Netlify Database provisioning/migrations run.
 [build]
   base = "."
   command = "npm run build --workspace=web"
