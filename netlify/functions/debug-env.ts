@@ -1,22 +1,25 @@
 import { getEnvironment } from "@netlify/runtime-utils";
 
-// Temporary diagnostic endpoint (v2 function format) to confirm secret env
-// vars and NETLIFY_DB_URL become visible once the runtime is v2.
+// Temporary diagnostic endpoint.
 export default async () => {
   const hasNetlifyGlobal = typeof (globalThis as any).Netlify !== "undefined";
   const env = getEnvironment();
-  const fromGetEnvironment = env.get("NETLIFY_DB_URL");
-  const fromProcessEnv = process.env.NETLIFY_DB_URL;
-  const jwtSecretPresent = Boolean(process.env.JWT_SECRET) || Boolean(env.get("JWT_SECRET"));
+  const netlifyDbUrlPresent = Boolean(env.get("NETLIFY_DB_URL"));
+  const jwtSecretPresent = Boolean(process.env.JWT_SECRET);
+
+  let dbQueryResult: string;
+  try {
+    const { prisma } = await import("../../server/src/db");
+    const rows = (await prisma.$queryRaw`SELECT 1 as ok`) as unknown[];
+    const trainerCount = await prisma.trainer.count();
+    dbQueryResult = `ok, queryRaw=${JSON.stringify(rows)}, trainerCount=${trainerCount}`;
+  } catch (e) {
+    dbQueryResult = `threw: ${e instanceof Error ? `${e.name}: ${e.message}` : String(e)}`;
+  }
 
   return new Response(
     JSON.stringify(
-      {
-        hasNetlifyGlobal,
-        netlifyDbUrlViaGetEnvironment: fromGetEnvironment ? `present, length=${fromGetEnvironment.length}` : "missing",
-        netlifyDbUrlViaProcessEnv: fromProcessEnv ? `present, length=${fromProcessEnv.length}` : "missing",
-        jwtSecretPresent,
-      },
+      { hasNetlifyGlobal, netlifyDbUrlPresent, jwtSecretPresent, dbQueryResult },
       null,
       2
     ),
