@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import type { PrismaClient } from "@prisma/client";
 import { hashPin, pinLookupHash } from "./auth";
+import freeExerciseDbLibrary from "./data/libraryFreeExerciseDb.json";
 
 const VIDEOS: Record<string, string> = {
   Squat: "https://www.youtube.com/watch?v=ultWZbUMPL8",
@@ -184,6 +185,25 @@ export async function seedLibrary(prisma: PrismaClient) {
       },
     });
   }
+
+  // Broader coverage imported from free-exercise-db (github.com/yuhonas/free-exercise-db,
+  // MIT-licensed), pre-transformed into our schema shape by a one-off script — see
+  // server/src/data/libraryFreeExerciseDb.json. A single createMany with skipDuplicates
+  // keeps this fast (one round trip for ~900 rows) instead of one upsert per row.
+  await prisma.libraryExercise.createMany({
+    data: freeExerciseDbLibrary as {
+      naam: string;
+      primaireSpier: string;
+      materiaal: string | null;
+      categorie: string | null;
+      doel: string;
+      type: string;
+      afbeelding: string | null;
+      bron: string;
+      bronId: string;
+    }[],
+    skipDuplicates: true,
+  });
 }
 
 export async function seedDemoClients(prisma: PrismaClient) {

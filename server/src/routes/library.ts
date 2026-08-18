@@ -12,8 +12,8 @@ router.get("/library", async (req, res) => {
   if (muscle && muscle !== "all") where.primaireSpier = muscle;
   if (q) {
     where.OR = [
-      { naam: { contains: q } },
-      { materiaal: { contains: q } },
+      { naam: { contains: q, mode: "insensitive" } },
+      { materiaal: { contains: q, mode: "insensitive" } },
     ];
   }
   const items = await prisma.libraryExercise.findMany({ where, orderBy: { naam: "asc" }, take: 200 });
