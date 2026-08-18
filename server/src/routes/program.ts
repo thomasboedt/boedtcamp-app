@@ -135,9 +135,13 @@ router.post("/items/:itemId/move", async (req, res) => {
     res.json({ ok: true });
     return;
   }
+  // Swap via a temporary out-of-range value: dayId+volgorde is unique, so
+  // updating either row straight to the other's volgorde would collide with
+  // it mid-transaction (the constraint isn't deferrable).
   await prisma.$transaction([
-    prisma.programItem.update({ where: { id: item.id }, data: { volgorde: neighbor.volgorde } }),
+    prisma.programItem.update({ where: { id: item.id }, data: { volgorde: -1 } }),
     prisma.programItem.update({ where: { id: neighbor.id }, data: { volgorde: item.volgorde } }),
+    prisma.programItem.update({ where: { id: item.id }, data: { volgorde: neighbor.volgorde } }),
   ]);
   res.json({ ok: true });
 });
