@@ -55,6 +55,7 @@ export const api = {
   dashboard: (clientId) => request(`/trainer/clients/${clientId}/dashboard`),
   chartExercises: (clientId) => request(`/trainer/clients/${clientId}/chart-exercises`),
   progress: (clientId, exercise) => request(`/trainer/clients/${clientId}/progress?exercise=${encodeURIComponent(exercise)}`),
+  foodDashboard: (clientId) => request(`/trainer/clients/${clientId}/food-dashboard`),
 
   // client app
   clientDays: () => request("/client/days"),

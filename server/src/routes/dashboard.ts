@@ -173,4 +173,59 @@ router.get("/clients/:id/progress", async (req, res) => {
   );
 });
 
+router.get("/clients/:id/food-dashboard", async (req, res) => {
+  const clientId = req.params.id;
+  const client = await prisma.client.findUnique({ where: { id: clientId } });
+  if (!client) {
+    res.status(404).json({ error: "Klant niet gevonden." });
+    return;
+  }
+
+  const dates: string[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+  }
+
+  const entries = await prisma.foodEntry.findMany({
+    where: { clientId, datum: { in: dates } },
+    orderBy: { loggedAt: "asc" },
+  });
+
+  const byDay = new Map<string, typeof entries>();
+  dates.forEach((d) => byDay.set(d, []));
+  entries.forEach((e) => byDay.get(e.datum)?.push(e));
+
+  const kcalRows = dates.map((d) => {
+    const [, m, day] = d.split("-");
+    return { label: `${day}/${m}`, val: Math.round((byDay.get(d) || []).reduce((a, e) => a + e.kcal, 0)) };
+  });
+
+  const today = dates[dates.length - 1];
+  const todayEntries = byDay.get(today) || [];
+  const todayTotals = todayEntries.reduce(
+    (acc, e) => ({ kcal: acc.kcal + e.kcal, eiwit: acc.eiwit + e.eiwit, koolhydraten: acc.koolhydraten + e.koolhydraten, vet: acc.vet + e.vet }),
+    { kcal: 0, eiwit: 0, koolhydraten: 0, vet: 0 }
+  );
+
+  const daysLogged = dates.filter((d) => (byDay.get(d) || []).length > 0).length;
+  const avgKcal7d = daysLogged > 0 ? Math.round(kcalRows.reduce((a, r) => a + r.val, 0) / daysLogged) : 0;
+
+  const kpis = [
+    { label: "Kcal vandaag", value: String(Math.round(todayTotals.kcal)), delta: client.calorieDoel ? `van ${client.calorieDoel} doel` : "geen doel ingesteld" },
+    { label: "Gem. kcal (7d)", value: String(avgKcal7d), delta: `over ${daysLogged}/7 dagen gelogd` },
+    { label: "Eiwit vandaag", value: `${Math.round(todayTotals.eiwit)}g`, delta: client.eiwitDoel ? `van ${client.eiwitDoel}g doel` : "geen doel ingesteld" },
+    { label: "Dagen gelogd (7d)", value: String(daysLogged), delta: daysLogged === 7 ? "elke dag" : `${7 - daysLogged} dag(en) gemist` },
+  ];
+
+  res.json({
+    kpis,
+    kcalRows,
+    todayTotals,
+    goals: { calorieDoel: client.calorieDoel, eiwitDoel: client.eiwitDoel, koolhydratenDoel: client.koolhydratenDoel, vetDoel: client.vetDoel },
+    todayEntries: todayEntries.map((e) => ({ id: e.id, naam: e.naam, hoeveelheid: e.hoeveelheid, eenheid: e.eenheid, kcal: e.kcal, eiwit: e.eiwit, koolhydraten: e.koolhydraten, vet: e.vet, bron: e.bron })),
+  });
+});
+
 export default router;
