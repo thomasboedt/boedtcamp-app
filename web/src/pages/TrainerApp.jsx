@@ -6,6 +6,7 @@ import Badge from "../ds/Badge.jsx";
 import Opvolging from "../components/trainer/Opvolging.jsx";
 import ProgramEditor from "../components/trainer/ProgramEditor.jsx";
 import ClientSwitcher from "../components/trainer/ClientSwitcher.jsx";
+import Nutrition from "../components/trainer/Nutrition.jsx";
 
 export default function TrainerApp() {
   const navigate = useNavigate();
@@ -82,11 +83,15 @@ export default function TrainerApp() {
                 <button onClick={() => setView("editor")} style={segLight(view === "editor")}>
                   Programma-editor
                 </button>
+                <button onClick={() => setView("voeding")} style={segLight(view === "voeding")}>
+                  Voeding
+                </button>
               </div>
             </div>
 
             {view === "opvolging" && <Opvolging clientId={client.id} />}
             {view === "editor" && <ProgramEditor client={client} onClientsChanged={refreshClients} />}
+            {view === "voeding" && <Nutrition clientId={client.id} />}
           </>
         )}
 

@@ -8,6 +8,8 @@ import libraryRoutes from "./routes/library";
 import dashboardRoutes from "./routes/dashboard";
 import clientAppRoutes from "./routes/clientApp";
 import adminRoutes from "./routes/admin";
+import nutritionClientRoutes from "./routes/nutritionClient";
+import nutritionTrainerRoutes from "./routes/nutritionTrainer";
 
 export const app = express();
 
@@ -15,7 +17,9 @@ export const app = express();
 // reached via a same-origin /api/* redirect to a function), so cross-origin
 // requests only happen in local dev against the Vite dev server.
 app.use(cors({ origin: process.env.WEB_ORIGIN || "http://localhost:5173", credentials: true }));
-app.use(express.json());
+// Raised from the default 100kb: a resized (~1024px) food photo as base64 JSON
+// comfortably exceeds that, everything else on the API is tiny by comparison.
+app.use(express.json({ limit: "8mb" }));
 app.use(cookieParser());
 
 app.use("/api", authRoutes);
@@ -23,7 +27,9 @@ app.use("/api/trainer", clientsRoutes);
 app.use("/api/trainer", programRoutes);
 app.use("/api/trainer", libraryRoutes);
 app.use("/api/trainer", dashboardRoutes);
+app.use("/api/trainer", nutritionTrainerRoutes);
 app.use("/api/client", clientAppRoutes);
+app.use("/api/client", nutritionClientRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));

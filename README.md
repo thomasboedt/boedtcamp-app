@@ -66,6 +66,22 @@ in het dashboard.
   toevoegen uit een gecureerde bibliotheek.
 - **Klant-app**: trainingsoverzicht, sets loggen met vooringevulde vorige waarde, reps per set
   aanpassen, een set verwijderen, rusttimer, en afronden met zwaarte-score/opmerking/pijnmelding.
+- **Voeding registreren**: de klant-app opent nu eerst een keuzescherm — *Trainen* of *Voeding
+  registreren*. Het voedingsdagboek toont kcal/koolhydraten/eiwitten/vetten tegen de doelen die
+  de trainer instelt, gegroepeerd per maaltijd. Registreren kan via barcode scannen (live camera
+  met `BarcodeDetector`, of manueel intikken), op naam zoeken, of een foto trekken — die probeert
+  eerst een barcode op de foto te lezen, en valt anders terug op beeldherkenning via de Anthropic
+  API (`ANTHROPIC_API_KEY`, server-side; optioneel — zonder sleutel werkt de rest gewoon door).
+  Zowel bij het opzoeken als na de beeldherkenning kan de klant portie, maaltijd en alle vier de
+  waarden zelf aanpassen voor het opslaat, en bestaande registraties zijn nadien nog te wijzigen
+  of te verwijderen.
+- **Trainer-dashboard · Voeding**: derde tab naast Opvolging en Programma-editor. Per klant
+  kcal/koolhydraten/eiwitten/vetten instellen (met de energieverdeling ernaast), plus overzichten
+  per periode (14 dagen / 30 dagen / 12 maanden) met gemiddelden tegen het doel, en één dag in
+  detail per geregistreerd product.
+- **Open Food Facts**: barcode-opzoeking en productzoekopdrachten lopen via de server (geen
+  CORS-afhankelijkheid in de browser); is de databank niet bereikbaar, dan valt de app terug op
+  een kleine ingebouwde productenlijst zodat de flow altijd demonstreerbaar blijft.
 
 ## Deployen naar Netlify
 
@@ -83,6 +99,7 @@ npx netlify-cli db                            # provisioneert een production-rea
 netlify env:set JWT_SECRET "<genereer iets willekeurigs>"
 netlify env:set TRAINER_USERNAME "tom"
 netlify env:set TRAINER_PASSWORD "<kies een sterk wachtwoord>"
+netlify env:set ANTHROPIC_API_KEY "<jouw Anthropic API-sleutel>"  # optioneel — enkel voor foto-herkenning van voeding
 
 # schema + seed tegen de productie-database (éénmalig, en na elke schemawijziging):
 DATABASE_URL="$(netlify env:get DATABASE_URL)" npm run db:migrate -w server -- deploy
@@ -94,7 +111,8 @@ npx netlify-cli deploy --prod
 Als je zelf al een Netlify-account/CLI-sessie hebt, kan je ook gewoon de repo koppelen via de
 Netlify-UI (Import from Git) — `netlify.toml` bevat alle build-instellingen, dus dat werkt zonder
 verdere configuratie zodra `DATABASE_URL`, `JWT_SECRET`, `TRAINER_USERNAME` en `TRAINER_PASSWORD`
-als environment variables staan.
+als environment variables staan. `ANTHROPIC_API_KEY` is optioneel: zonder sleutel werkt alles
+behalve foto-herkenning van een bord eten (barcode scannen en op naam zoeken blijven werken).
 
 ## Bewuste scope-keuzes
 
@@ -111,26 +129,35 @@ t.o.v. het prototype:
 - **"+ Klant toevoegen" zonder sjablonen**: een klant aanmaken vraagt naam/meta/focus/frequentie
   + pincode; er zijn geen kant-en-klare 50+/duo/jongere-sporter-sjablonen (was ook in het
   prototype al een placeholder).
+- **Foto-herkenning van voeding is optioneel**: zonder `ANTHROPIC_API_KEY` blijft barcode scannen
+  en op naam zoeken gewoon werken; enkel "foto trekken" van een bord zonder barcode geeft dan een
+  duidelijke melding in plaats van een resultaat.
 
 ## Projectstructuur
 
 ```
 server/
-  prisma/schema.prisma   Trainer, Client, ProgramDay, ProgramItem, Session, SetLog, LibraryExercise
-  prisma/seed.ts         trainer-account + 3 klanten + hun programma's + bibliotheek
+  prisma/schema.prisma   Trainer, Client, ProgramDay, ProgramItem, Session, SetLog, LibraryExercise,
+                          NutritionTarget, FoodEntry
+  prisma/seed.ts         trainer-account + 3 klanten + hun programma's + bibliotheek + voedingsdoelen
   src/app.ts             de geconfigureerde Express-app (routes + middleware, geen .listen())
   src/index.ts           lokale dev-entrypoint (app.listen op :4000)
   src/db.ts              Prisma Client via de pg-driver-adapter
-  src/routes/            auth, clients, program, dashboard, library, clientApp
+  src/routes/            auth, clients, program, dashboard, library, clientApp,
+                          nutritionClient, nutritionTrainer
   src/lib/schedule.ts    pool-rotatie + roeiopbouw-formules (client-app gebruikt dit)
+  src/lib/date.ts        lokale-dag ISO-datumhelpers voor het voedingsdagboek
+  src/lib/openFoodFacts.ts  server-side Open Food Facts-client + ingebouwde fallbacklijst
+  src/lib/nutritionAi.ts    foto-herkenning van voeding via de Anthropic API
 netlify/functions/api.ts de Express-app verpakt als één Netlify Function (serverless-http)
 netlify.toml            build/publish/functions-config + /api/* en SPA-redirects
 web/
   src/ds/                Button/Badge/Card, 1:1 overgenomen uit project/_ds/_ds_bundle.js
   src/styles/tokens.css  kleur/typografie/spacing-tokens uit project/_ds
   src/pages/             Landing, TrainerLogin, TrainerApp, ClientLogin, ClientAppShell
-  src/components/trainer/  ClientSwitcher, Opvolging, ProgramEditor
-  src/components/client/   Home, Workout, Done
+  src/components/trainer/  ClientSwitcher, Opvolging, ProgramEditor, Nutrition
+  src/components/client/   Choice, Home, Workout, Done, food/ (FoodApp, FoodDiary,
+                            FoodAddScreen, FoodEditScreen)
 project/                 het originele ontwerp-exportbundel (referentie)
 chats/                   de ontwerpgesprekken die tot dit ontwerp leidden
 ```

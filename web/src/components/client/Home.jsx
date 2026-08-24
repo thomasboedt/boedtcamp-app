@@ -1,17 +1,22 @@
 import Button from "../../ds/Button.jsx";
 import { segLight } from "../../lib/styles.js";
 
-export default function Home({ client, days, dayId, setDayId, history, onStart }) {
+export default function Home({ client, days, dayId, setDayId, history, onStart, onBack }) {
   const day = days.find((d) => d.id === dayId) || days[0];
   const today = new Date().toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <div style={{ padding: "18px 16px 0" }}>
-      <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#8b8f94" }}>
-        {today}
-      </div>
-      <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 28, color: "#000", marginTop: 4 }}>
-        Hallo {client.naam.split(" ")[0]}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+        <button onClick={onBack} style={{ flex: "none", width: 34, height: 34, border: "1px solid #e8ebee", background: "#fff", borderRadius: 10, fontSize: 15, cursor: "pointer", color: "#454e58" }}>
+          ‹
+        </button>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#8b8f94" }}>{today}</div>
+          <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 24, color: "#000", marginTop: 2 }}>
+            Hallo {client.naam.split(" ")[0]}
+          </div>
+        </div>
       </div>
 
       {day ? (

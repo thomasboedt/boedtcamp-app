@@ -56,6 +56,20 @@ export const api = {
   chartExercises: (clientId) => request(`/trainer/clients/${clientId}/chart-exercises`),
   progress: (clientId, exercise) => request(`/trainer/clients/${clientId}/progress?exercise=${encodeURIComponent(exercise)}`),
 
+  // client: nutrition
+  nutritionTargets: () => request("/client/nutrition/targets"),
+  nutritionDay: (date) => request(`/client/nutrition/day?date=${date}`),
+  addFoodEntry: (data) => request("/client/nutrition/entries", { method: "POST", body: data }),
+  updateFoodEntry: (id, data) => request(`/client/nutrition/entries/${id}`, { method: "PATCH", body: data }),
+  deleteFoodEntry: (id) => request(`/client/nutrition/entries/${id}`, { method: "DELETE" }),
+  searchFood: (q) => request(`/client/nutrition/search?q=${encodeURIComponent(q)}`),
+  lookupBarcode: (code) => request(`/client/nutrition/barcode/${encodeURIComponent(code)}`),
+  recognizeFoodPhoto: (imageBase64) => request("/client/nutrition/photo", { method: "POST", body: { imageBase64 } }),
+
+  // trainer: nutrition
+  setNutritionTargets: (clientId, data) => request(`/trainer/clients/${clientId}/nutrition-targets`, { method: "PUT", body: data }),
+  clientNutrition: (clientId, period, day) => request(`/trainer/clients/${clientId}/nutrition?period=${period}${day ? `&day=${day}` : ""}`),
+
   // client app
   clientDays: () => request("/client/days"),
   dayExercises: (dayId) => request(`/client/days/${dayId}/exercises`),
