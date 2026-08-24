@@ -5,6 +5,7 @@ import Home from "../components/client/Home.jsx";
 import Workout from "../components/client/Workout.jsx";
 import Done from "../components/client/Done.jsx";
 import Voeding from "../components/client/Voeding.jsx";
+import { todayLocal } from "../lib/nutrition.js";
 
 export default function ClientAppShell() {
   const navigate = useNavigate();
@@ -16,15 +17,17 @@ export default function ClientAppShell() {
   const [dayId, setDayId] = useState(null);
   const [session, setSession] = useState(null); // { id, dayTitle, exercises }
   const [doneSummary, setDoneSummary] = useState(null);
+  const [foodToday, setFoodToday] = useState(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const [me, dayList, hist] = await Promise.all([api.clientMe(), api.clientDays(), api.clientHistory()]);
+        const [me, dayList, hist, food] = await Promise.all([api.clientMe(), api.clientDays(), api.clientHistory(), api.food(todayLocal())]);
         setClient(me);
         setDays(dayList);
         setHistory(hist);
         setDayId(dayList[0]?.id || null);
+        setFoodToday(food);
       } catch {
         navigate("/client/login", { replace: true });
       } finally {
@@ -35,6 +38,10 @@ export default function ClientAppShell() {
 
   const refreshHistory = useCallback(async () => {
     setHistory(await api.clientHistory());
+  }, []);
+
+  const refreshFoodToday = useCallback(async () => {
+    setFoodToday(await api.food(todayLocal()));
   }, []);
 
   async function startWorkout() {
@@ -49,6 +56,7 @@ export default function ClientAppShell() {
     setScreen("home");
     setSession(null);
     refreshHistory();
+    refreshFoodToday();
   }
 
   async function finishWorkout(summary) {
@@ -96,6 +104,7 @@ export default function ClientAppShell() {
             history={history}
             onStart={startWorkout}
             onFood={() => setScreen("food")}
+            foodToday={foodToday}
           />
         )}
         {screen === "workout" && session && (

@@ -1,9 +1,13 @@
 import Button from "../../ds/Button.jsx";
 import { segLight } from "../../lib/styles.js";
 
-export default function Home({ client, days, dayId, setDayId, history, onStart, onFood }) {
+export default function Home({ client, days, dayId, setDayId, history, onStart, onFood, foodToday }) {
   const day = days.find((d) => d.id === dayId) || days[0];
   const today = new Date().toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" });
+
+  const kcalSoFar = foodToday ? Math.round(foodToday.entries.reduce((a, e) => a + e.kcal, 0)) : 0;
+  const kcalGoal = foodToday?.doelen?.calorieDoel || null;
+  const kcalPct = kcalGoal ? Math.min(100, Math.round((kcalSoFar / kcalGoal) * 100)) : 0;
 
   return (
     <div style={{ padding: "18px 16px 0" }}>
@@ -55,23 +59,35 @@ export default function Home({ client, days, dayId, setDayId, history, onStart, 
         style={{
           marginTop: 16,
           width: "100%",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          padding: 16,
-          border: "1px solid #e8ebee",
-          borderRadius: 14,
+          textAlign: "left",
+          border: "1.5px solid #e8ebee",
           background: "#fff",
           cursor: "pointer",
-          textAlign: "left",
+          borderRadius: 20,
+          padding: 20,
         }}
       >
-        <div style={{ width: 38, height: 38, borderRadius: 10, background: "#f4f6f8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🍽️</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "#000" }}>Voedingsdagboek</div>
-          <div style={{ fontSize: 12, color: "#8b8f94" }}>Log wat je vandaag hebt gegeten</div>
+        <div style={{ fontSize: 10.5, letterSpacing: ".16em", textTransform: "uppercase", color: "#8b8f94" }}>Vandaag</div>
+        <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 22, marginTop: 6, color: "#000" }}>Voeding registreren</div>
+        <div style={{ fontSize: 13.5, color: "#7c8794", marginTop: 6 }}>
+          {kcalGoal ? (
+            <>
+              <span style={{ color: "#000", fontWeight: 600 }}>{kcalSoFar}</span> / {kcalGoal} kcal
+            </>
+          ) : (
+            <>
+              <span style={{ color: "#000", fontWeight: 600 }}>{kcalSoFar}</span> kcal vandaag
+            </>
+          )}
         </div>
-        <div style={{ color: "#c2c8cf", fontSize: 16 }}>›</div>
+        {kcalGoal && (
+          <div style={{ height: 8, borderRadius: 999, background: "#f4f6f8", marginTop: 12, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${kcalPct}%`, background: "linear-gradient(135deg,#2c9dfd,#1f5dc4)", borderRadius: 999 }} />
+          </div>
+        )}
+        <div style={{ display: "inline-block", marginTop: 14, padding: "10px 18px", borderRadius: 999, background: "#000", color: "#fff", fontSize: 13.5, fontWeight: 600 }}>
+          Foto, barcode of zoeken
+        </div>
       </button>
 
       <div style={{ padding: "24px 0 0" }}>

@@ -51,7 +51,7 @@ export default function Voeding({ onHome }) {
     load(datum);
   }
 
-  const hasGoals = doelen.calorieDoel || doelen.eiwitDoel || doelen.koolhydratenDoel || doelen.vetDoel;
+  const kcalLeft = doelen.calorieDoel != null ? Math.round(doelen.calorieDoel - totals.kcal) : null;
 
   return (
     <div style={{ padding: "0 0 24px" }}>
@@ -77,13 +77,21 @@ export default function Voeding({ onHome }) {
       </div>
 
       <div style={{ padding: 16 }}>
-        {hasGoals && (
-          <div style={{ background: "#fff", border: "1.5px solid #e8ebee", borderRadius: 16, padding: 18, marginBottom: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-            {MACROS.filter((m) => doelen[m.goalKey]).map((m) => (
-              <MacroBar key={m.key} label={m.label} value={totals[m.key]} goal={doelen[m.goalKey]} unit={m.unit} color={m.color} />
+        <div style={{ background: "#fff", border: "1.5px solid #e8ebee", borderRadius: 16, padding: 18, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 38, color: "#000", lineHeight: 1 }}>{Math.round(totals.kcal)}</div>
+            <div style={{ fontSize: 13, color: "#8b8f94" }}>{doelen.calorieDoel != null ? `/ ${doelen.calorieDoel} kcal` : "kcal"}</div>
+          </div>
+          <div style={{ fontSize: 12.5, fontWeight: 600, marginTop: 4, color: doelen.calorieDoel == null ? "#8b8f94" : kcalLeft >= 0 ? "#1f5dc4" : "#c0392b" }}>
+            {doelen.calorieDoel == null ? "Je coach heeft nog geen voedingsdoel ingesteld." : kcalLeft >= 0 ? `nog ${kcalLeft} kcal te gaan` : `${Math.abs(kcalLeft)} kcal boven doel`}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 18 }}>
+            {MACROS.slice(1).map((m) => (
+              <MacroRow key={m.key} label={m.label} value={totals[m.key]} goal={doelen[m.goalKey]} unit={m.unit} color={m.color} />
             ))}
           </div>
-        )}
+        </div>
 
         <Button variant="dark" style={{ width: "100%", height: 48 }} onClick={() => setAddOpen(true)}>
           + Voeding toevoegen
@@ -123,20 +131,23 @@ export default function Voeding({ onHome }) {
   );
 }
 
-function MacroBar({ label, value, goal, unit = "", color }) {
-  const pct = Math.min(100, Math.round((value / goal) * 100));
+function MacroRow({ label, value, goal, unit = "", color }) {
+  const hasGoal = goal != null;
+  const pct = hasGoal ? Math.min(100, Math.round((value / goal) * 100)) : 0;
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 5 }}>
-        <span style={{ color: "#454e58", fontWeight: 600 }}>{label}</span>
+        <span style={{ color: "#454e58" }}>{label}</span>
         <span style={{ color: "#8b8f94" }}>
-          {Math.round(value)}
-          {unit} / {goal}
-          {unit}
+          <span style={{ color: "#000", fontWeight: 600 }}>
+            {Math.round(value)}
+            {unit}
+          </span>
+          {hasGoal ? ` / ${goal}${unit}` : ""}
         </span>
       </div>
-      <div style={{ height: 8, borderRadius: 999, background: "#f0f2f4", overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 999, transition: "width .2s" }} />
+      <div style={{ height: 8, borderRadius: 999, background: "#f4f6f8", overflow: "hidden" }}>
+        {hasGoal && <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 999, transition: "width .2s" }} />}
       </div>
     </div>
   );
