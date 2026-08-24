@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api.js";
+import Choice from "../components/client/Choice.jsx";
 import Home from "../components/client/Home.jsx";
 import Workout from "../components/client/Workout.jsx";
 import Done from "../components/client/Done.jsx";
+import FoodApp from "../components/client/food/FoodApp.jsx";
 
 export default function ClientAppShell() {
   const navigate = useNavigate();
@@ -11,7 +13,7 @@ export default function ClientAppShell() {
   const [client, setClient] = useState(null);
   const [days, setDays] = useState([]);
   const [history, setHistory] = useState([]);
-  const [screen, setScreen] = useState("home");
+  const [screen, setScreen] = useState("kies");
   const [dayId, setDayId] = useState(null);
   const [session, setSession] = useState(null); // { id, dayTitle, exercises }
   const [doneSummary, setDoneSummary] = useState(null);
@@ -50,6 +52,11 @@ export default function ClientAppShell() {
     refreshHistory();
   }
 
+  function goKies() {
+    setScreen("kies");
+    setSession(null);
+  }
+
   async function finishWorkout(summary) {
     setDoneSummary(summary);
     setScreen("done");
@@ -86,6 +93,9 @@ export default function ClientAppShell() {
       </div>
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 40px" }}>
+        {screen === "kies" && (
+          <Choice client={client} day={days.find((d) => d.id === dayId) || days[0]} onTrain={() => setScreen("home")} onFood={() => setScreen("food")} />
+        )}
         {screen === "home" && (
           <Home
             client={client}
@@ -94,6 +104,7 @@ export default function ClientAppShell() {
             setDayId={setDayId}
             history={history}
             onStart={startWorkout}
+            onBack={goKies}
           />
         )}
         {screen === "workout" && session && (
@@ -102,6 +113,7 @@ export default function ClientAppShell() {
         {screen === "done" && (
           <Done summary={doneSummary} sessionId={session?.id} onHome={goHome} />
         )}
+        {screen === "food" && <FoodApp onBack={goKies} />}
       </div>
     </div>
   );

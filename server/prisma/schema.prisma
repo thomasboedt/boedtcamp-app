@@ -32,6 +32,46 @@ model Client {
 
   days       ProgramDay[]
   sessions   Session[]
+  nutritionTarget NutritionTarget?
+  foodEntries     FoodEntry[]
+}
+
+// Daily kcal/macro goals the trainer sets for this client. Shown to the client
+// in the food diary as a target, and used on the trainer dashboard to compute
+// "% of target" overviews.
+model NutritionTarget {
+  id        String   @id @default(uuid())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String   @unique
+  kcal      Int      @default(2000)
+  carbs     Int      @default(220) // grams
+  protein   Int      @default(120) // grams
+  fat       Int      @default(70) // grams
+  updatedAt DateTime @updatedAt
+}
+
+// One logged food item (a client's nutrition diary entry), found via barcode
+// scan, name search, or photo recognition (all backed by Open Food Facts, with
+// photo recognition falling back to the Anthropic API for dishes that aren't
+// packaged products). Values are already scaled to the logged portion.
+model FoodEntry {
+  id        String   @id @default(uuid())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String
+  dateIso   String // "YYYY-MM-DD" in the client's local day, e.g. "2026-08-24"
+  meal      String // ontbijt | lunch | avond | snack
+  naam      String
+  merk      String?
+  barcode   String?
+  grams     Float
+  kcal      Int
+  carbs     Float
+  protein   Float
+  fat       Float
+  bron      String // open-food-facts | basislijst | foto-herkenning | handmatig
+  createdAt DateTime @default(now())
+
+  @@index([clientId, dateIso])
 }
 
 // One training day in a client's schedule (e.g. "Training 1 - Full body A").
