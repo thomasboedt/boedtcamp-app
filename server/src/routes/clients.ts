@@ -21,6 +21,10 @@ router.get("/clients", async (_req, res) => {
       freq: c.freq,
       geboortejaar: c.geboortejaar,
       days: c.days.length,
+      calorieDoel: c.calorieDoel,
+      eiwitDoel: c.eiwitDoel,
+      koolhydratenDoel: c.koolhydratenDoel,
+      vetDoel: c.vetDoel,
     }))
   );
 });
@@ -58,6 +62,10 @@ const clientUpdateInput = z.object({
   focus: z.string().optional().nullable(),
   freq: z.string().optional().nullable(),
   geboortejaar: z.number().int().optional().nullable(),
+  calorieDoel: z.number().int().min(0).optional().nullable(),
+  eiwitDoel: z.number().int().min(0).optional().nullable(),
+  koolhydratenDoel: z.number().int().min(0).optional().nullable(),
+  vetDoel: z.number().int().min(0).optional().nullable(),
 });
 
 router.patch("/clients/:id", async (req, res) => {

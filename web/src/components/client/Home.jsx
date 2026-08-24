@@ -1,7 +1,7 @@
 import Button from "../../ds/Button.jsx";
 import { segLight } from "../../lib/styles.js";
 
-export default function Home({ client, days, dayId, setDayId, history, onStart }) {
+export default function Home({ client, days, dayId, setDayId, history, onStart, onFood }) {
   const day = days.find((d) => d.id === dayId) || days[0];
   const today = new Date().toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" });
 
@@ -49,6 +49,30 @@ export default function Home({ client, days, dayId, setDayId, history, onStart }
           ))}
         </div>
       )}
+
+      <button
+        onClick={onFood}
+        style={{
+          marginTop: 16,
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: 16,
+          border: "1px solid #e8ebee",
+          borderRadius: 14,
+          background: "#fff",
+          cursor: "pointer",
+          textAlign: "left",
+        }}
+      >
+        <div style={{ width: 38, height: 38, borderRadius: 10, background: "#f4f6f8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🍽️</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "#000" }}>Voedingsdagboek</div>
+          <div style={{ fontSize: 12, color: "#8b8f94" }}>Log wat je vandaag hebt gegeten</div>
+        </div>
+        <div style={{ color: "#c2c8cf", fontSize: 16 }}>›</div>
+      </button>
 
       <div style={{ padding: "24px 0 0" }}>
         <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#8b8f94", marginBottom: 10 }}>

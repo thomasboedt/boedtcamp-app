@@ -30,8 +30,15 @@ model Client {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // Daily nutrition targets set by the trainer; null means "no goal set" for that macro.
+  calorieDoel       Int?
+  eiwitDoel         Int?
+  koolhydratenDoel  Int?
+  vetDoel           Int?
+
   days       ProgramDay[]
   sessions   Session[]
+  foodEntries FoodEntry[]
 }
 
 // One training day in a client's schedule (e.g. "Training 1 - Full body A").
@@ -137,4 +144,25 @@ model LibraryExercise {
   @@unique([bron, bronId])
   @@index([primaireSpier])
   @@index([doel])
+}
+
+// One logged food item in a client's daily food diary.
+model FoodEntry {
+  id            String   @id @default(uuid())
+  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      String
+  datum         String   // "YYYY-MM-DD", client-local day bucket (simpler than DateTime range queries)
+  naam          String
+  merk          String? // brand, when sourced from Open Food Facts
+  hoeveelheid   Float    @default(100)
+  eenheid       String   @default("g") // g | ml | portie
+  kcal          Float
+  eiwit         Float    @default(0)
+  koolhydraten  Float    @default(0)
+  vet           Float    @default(0)
+  bron          String // handmatig | zoeken | barcode | foto
+  bronRef       String? // Open Food Facts barcode/code, for reference
+  loggedAt      DateTime @default(now())
+
+  @@index([clientId, datum])
 }

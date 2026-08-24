@@ -16,6 +16,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
     "@netlify/database": "^1.1.0",
     "@prisma/adapter-pg": "^5.22.0",
     "@prisma/client": "^5.20.0",

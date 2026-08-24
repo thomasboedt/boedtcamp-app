@@ -3,6 +3,8 @@ import { z } from "zod";
 import { prisma } from "../db";
 import { requireClient } from "../middleware/auth";
 import { CORE_POOL, MOB_POOL, fmtNumber, isoWeek, pickPool, rowMinutes } from "../lib/schedule";
+import { searchFood, lookupBarcode } from "../lib/openFoodFacts";
+import { analyzeFoodPhoto } from "../lib/foodPhotoAI";
 
 const router = Router();
 router.use(requireClient);
@@ -284,6 +286,103 @@ router.get("/history", async (req, res) => {
       };
     })
   );
+});
+
+router.get("/food", async (req, res) => {
+  const datum = (req.query.datum as string) || new Date().toISOString().slice(0, 10);
+  const client = await prisma.client.findUnique({ where: { id: req.clientId } });
+  const entries = await prisma.foodEntry.findMany({
+    where: { clientId: req.clientId, datum },
+    orderBy: { loggedAt: "asc" },
+  });
+  res.json({
+    datum,
+    entries,
+    doelen: {
+      calorieDoel: client?.calorieDoel ?? null,
+      eiwitDoel: client?.eiwitDoel ?? null,
+      koolhydratenDoel: client?.koolhydratenDoel ?? null,
+      vetDoel: client?.vetDoel ?? null,
+    },
+  });
+});
+
+const foodEntryInput = z.object({
+  datum: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldige datum."),
+  naam: z.string().min(1),
+  merk: z.string().optional().nullable(),
+  hoeveelheid: z.number().positive(),
+  eenheid: z.string().min(1),
+  kcal: z.number().min(0),
+  eiwit: z.number().min(0).default(0),
+  koolhydraten: z.number().min(0).default(0),
+  vet: z.number().min(0).default(0),
+  bron: z.enum(["handmatig", "zoeken", "barcode", "foto"]),
+  bronRef: z.string().optional().nullable(),
+});
+
+router.post("/food", async (req, res) => {
+  const parsed = foodEntryInput.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message || "Ongeldige invoer." });
+    return;
+  }
+  const entry = await prisma.foodEntry.create({ data: { ...parsed.data, clientId: req.clientId! } });
+  res.status(201).json(entry);
+});
+
+router.delete("/food/:id", async (req, res) => {
+  const entry = await prisma.foodEntry.findUnique({ where: { id: req.params.id } });
+  if (!entry || entry.clientId !== req.clientId) {
+    res.status(403).json({ error: "Geen toegang." });
+    return;
+  }
+  await prisma.foodEntry.delete({ where: { id: entry.id } });
+  res.json({ ok: true });
+});
+
+router.get("/food/search", async (req, res) => {
+  const q = ((req.query.q as string) || "").trim();
+  if (q.length < 2) {
+    res.json({ items: [] });
+    return;
+  }
+  try {
+    res.json({ items: await searchFood(q) });
+  } catch (e) {
+    res.status(502).json({ error: e instanceof Error ? e.message : "Zoeken mislukt." });
+  }
+});
+
+router.get("/food/barcode/:code", async (req, res) => {
+  try {
+    const product = await lookupBarcode(req.params.code);
+    if (!product) {
+      res.status(404).json({ error: "Product niet gevonden." });
+      return;
+    }
+    res.json(product);
+  } catch (e) {
+    res.status(502).json({ error: e instanceof Error ? e.message : "Opzoeken mislukt." });
+  }
+});
+
+const photoInput = z.object({
+  image: z.string().min(1),
+  mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]).default("image/jpeg"),
+});
+
+router.post("/food/photo", async (req, res) => {
+  const parsed = photoInput.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Ongeldige foto." });
+    return;
+  }
+  try {
+    res.json(await analyzeFoodPhoto(parsed.data.image, parsed.data.mimeType));
+  } catch (e) {
+    res.status(502).json({ error: e instanceof Error ? e.message : "Foto-herkenning mislukt." });
+  }
 });
 
 export default router;

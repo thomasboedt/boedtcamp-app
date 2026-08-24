@@ -16,6 +16,43 @@ router.get("/seed", async (req, res) => {
     res.status(404).json({ error: "Not found" });
     return;
   }
+  // Netlify Database's own migration step has proven unreliable (see the
+  // nutrition_tracking migration) — apply schema changes here too, guarded
+  // so this stays safe to run against a database that's already up to date.
+  // One statement per call: $executeRawUnsafe goes through a parameterized
+  // driver call that doesn't support multiple ;-separated commands.
+  const schemaStatements = [
+    `ALTER TABLE "Client" ADD COLUMN IF NOT EXISTS "calorieDoel" INTEGER`,
+    `ALTER TABLE "Client" ADD COLUMN IF NOT EXISTS "eiwitDoel" INTEGER`,
+    `ALTER TABLE "Client" ADD COLUMN IF NOT EXISTS "koolhydratenDoel" INTEGER`,
+    `ALTER TABLE "Client" ADD COLUMN IF NOT EXISTS "vetDoel" INTEGER`,
+    `CREATE TABLE IF NOT EXISTS "FoodEntry" (
+        "id" TEXT NOT NULL,
+        "clientId" TEXT NOT NULL,
+        "datum" TEXT NOT NULL,
+        "naam" TEXT NOT NULL,
+        "merk" TEXT,
+        "hoeveelheid" DOUBLE PRECISION NOT NULL DEFAULT 100,
+        "eenheid" TEXT NOT NULL DEFAULT 'g',
+        "kcal" DOUBLE PRECISION NOT NULL,
+        "eiwit" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "koolhydraten" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "vet" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "bron" TEXT NOT NULL,
+        "bronRef" TEXT,
+        "loggedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "FoodEntry_pkey" PRIMARY KEY ("id")
+    )`,
+    `CREATE INDEX IF NOT EXISTS "FoodEntry_clientId_datum_idx" ON "FoodEntry"("clientId", "datum")`,
+    `DO $$ BEGIN
+      ALTER TABLE "FoodEntry" ADD CONSTRAINT "FoodEntry_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$`,
+  ];
+  for (const statement of schemaStatements) {
+    await prisma.$executeRawUnsafe(statement);
+  }
+
   const username = process.env.TRAINER_USERNAME || "tom";
   const password = process.env.TRAINER_PASSWORD || "boedtcamp";
   await seedTrainer(prisma, username, password);

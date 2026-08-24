@@ -4,6 +4,7 @@ import { api } from "../lib/api.js";
 import Home from "../components/client/Home.jsx";
 import Workout from "../components/client/Workout.jsx";
 import Done from "../components/client/Done.jsx";
+import Voeding from "../components/client/Voeding.jsx";
 
 export default function ClientAppShell() {
   const navigate = useNavigate();
@@ -94,6 +95,7 @@ export default function ClientAppShell() {
             setDayId={setDayId}
             history={history}
             onStart={startWorkout}
+            onFood={() => setScreen("food")}
           />
         )}
         {screen === "workout" && session && (
@@ -102,6 +104,7 @@ export default function ClientAppShell() {
         {screen === "done" && (
           <Done summary={doneSummary} sessionId={session?.id} onHome={goHome} />
         )}
+        {screen === "food" && <Voeding onHome={goHome} />}
       </div>
     </div>
   );

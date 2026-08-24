@@ -65,4 +65,12 @@ export const api = {
     request(`/client/sessions/${sessionId}/sets/${encodeURIComponent(oefeningNaam)}/${setNr}`, { method: "DELETE" }),
   completeSession: (sessionId, data) => request(`/client/sessions/${sessionId}/complete`, { method: "POST", body: data }),
   clientHistory: () => request("/client/history"),
+
+  // client app: food diary
+  food: (datum) => request(`/client/food?datum=${encodeURIComponent(datum)}`),
+  addFoodEntry: (data) => request("/client/food", { method: "POST", body: data }),
+  deleteFoodEntry: (id) => request(`/client/food/${id}`, { method: "DELETE" }),
+  searchFood: (q) => request(`/client/food/search?q=${encodeURIComponent(q)}`),
+  lookupBarcode: (code) => request(`/client/food/barcode/${encodeURIComponent(code)}`),
+  analyzeFoodPhoto: (image, mimeType) => request("/client/food/photo", { method: "POST", body: { image, mimeType } }),
 };
