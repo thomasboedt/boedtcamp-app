@@ -54,7 +54,7 @@ function resizeToBase64(file, maxSize) {
   });
 }
 
-export default function FoodAddScreen({ initialMode, initialPhotoFile, onBack, onPick, onAddAll }) {
+export default function FoodAddScreen({ initialMode, initialPhotoFile, onBack, onPick, onAddAll, saving, saveError }) {
   const [mode, setMode] = useState(initialMode || "search");
 
   // search
@@ -391,9 +391,14 @@ export default function FoodAddScreen({ initialMode, initialPhotoFile, onBack, o
                 <div style={{ fontSize: 12, lineHeight: 1.6, color: "#8b8f94", marginTop: 4 }}>
                   {aiConfidence ? `Zekerheid: ${aiConfidence}.` : ""} Tik een item aan om de portie en de waarden aan te passen.
                 </div>
+                {saveError && (
+                  <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "#c9463c", marginTop: 12, background: "#fff5f4", border: "1.5px solid #ffd6d2", borderRadius: 12, padding: "10px 12px" }}>
+                    {saveError}
+                  </div>
+                )}
                 <div style={{ marginTop: 14 }}>
-                  <Button variant="primary" size="lg" onClick={() => onAddAll(aiItems.map(aiItemToDraft))} style={{ width: "100%", height: 54, fontSize: 16 }}>
-                    Alles toevoegen aan mijn dag
+                  <Button variant="primary" size="lg" onClick={() => onAddAll(aiItems.map(aiItemToDraft))} disabled={saving} style={{ width: "100%", height: 54, fontSize: 16 }}>
+                    {saving ? "Bezig…" : "Alles toevoegen aan mijn dag"}
                   </Button>
                 </div>
               </div>

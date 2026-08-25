@@ -4,7 +4,7 @@ import { MEALS, round1, scaleToGrams } from "./foodShared.js";
 const numField = { display: "flex", alignItems: "center", gap: 6, border: "1.5px solid #e8ebee", borderRadius: 11, padding: "8px 12px", background: "#fff" };
 const stepBtn = { width: 48, height: 48, flex: "none", border: "1.5px solid #c2c8cf", background: "#fff", borderRadius: 14, fontSize: 22, color: "#454e58", cursor: "pointer" };
 
-export default function FoodEditScreen({ draft, setDraft, onCancel, onSave, saving }) {
+export default function FoodEditScreen({ draft, setDraft, onCancel, onSave, saving, saveError }) {
   function setGrams(grams) {
     const g = Math.max(1, Math.round(grams));
     setDraft((d) => ({ ...d, grams: g, ...scaleToGrams(d.per100, g) }));
@@ -113,6 +113,12 @@ export default function FoodEditScreen({ draft, setDraft, onCancel, onSave, savi
               : "Deze waarden komen uit Open Food Facts en zijn omgerekend naar jouw portie. Pas ze aan als je iets anders at."}
           </div>
         </div>
+
+        {saveError && (
+          <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "#c9463c", marginTop: 14, background: "#fff5f4", border: "1.5px solid #ffd6d2", borderRadius: 12, padding: "10px 12px" }}>
+            {saveError}
+          </div>
+        )}
 
         <div style={{ marginTop: 18 }}>
           <Button variant="primary" size="lg" onClick={onSave} disabled={saving} style={{ width: "100%", height: 54, fontSize: 16 }}>

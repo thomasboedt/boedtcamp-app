@@ -17,6 +17,7 @@ export default function FoodApp({ onBack }) {
   const [totals, setTotals] = useState({ kcal: 0, carbs: 0, protein: 0, fat: 0 });
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     api.nutritionTargets().then(setTargets);
@@ -36,6 +37,7 @@ export default function FoodApp({ onBack }) {
   function openAdd(mode, file) {
     setAddMode(mode);
     setAddPhotoFile(file || null);
+    setSaveError("");
     setScreen("add");
   }
 
@@ -65,11 +67,13 @@ export default function FoodApp({ onBack }) {
 
   function pickDraft(d) {
     setDraft(d);
+    setSaveError("");
     setScreen("edit");
   }
 
   async function saveDraft() {
     setSaving(true);
+    setSaveError("");
     try {
       if (draft.editing) {
         await api.updateFoodEntry(draft.editing, {
@@ -98,6 +102,8 @@ export default function FoodApp({ onBack }) {
       setDraft(null);
       setScreen("diary");
       await loadDay(date);
+    } catch (err) {
+      setSaveError(err.message || "Opslaan is niet gelukt. Probeer opnieuw.");
     } finally {
       setSaving(false);
     }
@@ -105,6 +111,7 @@ export default function FoodApp({ onBack }) {
 
   async function addAll(drafts) {
     setSaving(true);
+    setSaveError("");
     try {
       await Promise.all(
         drafts.map((d) =>
@@ -125,6 +132,8 @@ export default function FoodApp({ onBack }) {
       );
       setScreen("diary");
       await loadDay(date);
+    } catch (err) {
+      setSaveError(err.message || "Opslaan is niet gelukt. Probeer opnieuw.");
     } finally {
       setSaving(false);
     }
@@ -141,6 +150,8 @@ export default function FoodApp({ onBack }) {
       <FoodAddScreen
         initialMode={addMode}
         initialPhotoFile={addPhotoFile}
+        saving={saving}
+        saveError={saveError}
         onBack={() => setScreen("diary")}
         onPick={pickDraft}
         onAddAll={addAll}
@@ -154,6 +165,7 @@ export default function FoodApp({ onBack }) {
         draft={draft}
         setDraft={setDraft}
         saving={saving}
+        saveError={saveError}
         onCancel={() => {
           setDraft(null);
           setScreen(addMode === "photo" ? "add" : "diary");
