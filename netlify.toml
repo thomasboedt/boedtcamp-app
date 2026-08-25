@@ -1,6 +1,12 @@
 [build]
   base = "."
-  command = "npm run build --workspace=web"
+  # Explicit `prisma generate` before the web build, rather than relying on it
+  # happening implicitly via the `prisma` package's postinstall hook: when
+  # Netlify restores node_modules from its build cache, npm install can skip
+  # postinstall for already-present packages, leaving the bundled function
+  # running a Prisma Client generated from a stale, previously-cached
+  # schema.prisma instead of the one actually in this commit.
+  command = "npm run db:generate -w server && npm run build --workspace=web"
   publish = "web/dist"
 
 [functions]
