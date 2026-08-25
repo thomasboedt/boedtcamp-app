@@ -53,16 +53,8 @@ router.post("/nutrition/entries", async (req, res) => {
     res.status(400).json({ error: parsed.error.issues[0]?.message || "Ongeldige invoer." });
     return;
   }
-  // Temporarily surfaces the real DB error instead of the generic handler in
-  // app.ts — this table's had a rough deploy history, so seeing the actual
-  // Prisma/Postgres message here beats guessing blind. Safe to tighten back
-  // once entries are confirmed saving reliably.
-  try {
-    const entry = await prisma.foodEntry.create({ data: { clientId: req.clientId!, ...parsed.data } });
-    res.status(201).json(entry);
-  } catch (err) {
-    res.status(500).json({ error: err instanceof Error ? err.message : "Onbekende fout." });
-  }
+  const entry = await prisma.foodEntry.create({ data: { clientId: req.clientId!, ...parsed.data } });
+  res.status(201).json(entry);
 });
 
 const entryUpdateInput = z.object({
