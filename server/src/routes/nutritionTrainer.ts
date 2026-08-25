@@ -3,24 +3,35 @@ import { z } from "zod";
 import { prisma } from "../db";
 import { requireTrainer } from "../middleware/auth";
 import { isoAdd, isoToday } from "../lib/date";
+import { deriveGrams } from "../lib/nutrition";
 
 const router = Router();
 router.use(requireTrainer);
 
 const NL_MON_SHORT = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
-const DEFAULT_TARGET = { kcal: 2000, carbs: 220, protein: 120, fat: 70 };
+const DEFAULT_TARGET = { kcal: 2000, pctCarbs: 45, pctProtein: 25, pctFat: 30 };
 
+// The calculator's inputs are saved alongside the target (not the computed
+// result — the trainer applies that to kcal explicitly), purely so the
+// panel doesn't come back blank next time it's opened for this client.
 const targetInput = z.object({
   kcal: z.number().int().positive(),
-  carbs: z.number().int().min(0),
-  protein: z.number().int().min(0),
-  fat: z.number().int().min(0),
+  pctCarbs: z.number().int().min(0).max(100),
+  pctProtein: z.number().int().min(0).max(100),
+  pctFat: z.number().int().min(0).max(100),
+  calcSex: z.enum(["vrouw", "man"]).optional().nullable(),
+  calcAge: z.number().int().positive().optional().nullable(),
+  calcWeight: z.number().positive().optional().nullable(),
+  calcHeight: z.number().positive().optional().nullable(),
+  calcActivity: z.enum(["zittend", "licht", "matig", "zwaar", "topsport"]).optional().nullable(),
+  calcGoal: z.enum(["afvallen", "onderhoud", "aankomen"]).optional().nullable(),
+  calcFormula: z.enum(["mifflin", "harris"]).optional().nullable(),
 });
 
 router.put("/clients/:id/nutrition-targets", async (req, res) => {
   const parsed = targetInput.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: "Ongeldige invoer." });
+    res.status(400).json({ error: parsed.error.issues[0]?.message || "Ongeldige invoer." });
     return;
   }
   const target = await prisma.nutritionTarget.upsert({
@@ -28,7 +39,7 @@ router.put("/clients/:id/nutrition-targets", async (req, res) => {
     update: parsed.data,
     create: { clientId: req.params.id, ...parsed.data },
   });
-  res.json(target);
+  res.json({ ...target, ...deriveGrams(target.kcal, target.pctCarbs, target.pctProtein, target.pctFat) });
 });
 
 type EntryTotals = { kcal: number; carbs: number; protein: number; fat: number };
@@ -50,7 +61,22 @@ router.get("/clients/:id/nutrition", async (req, res) => {
   const today = isoToday();
 
   const targetRow = await prisma.nutritionTarget.findUnique({ where: { clientId } });
-  const target = targetRow ? { kcal: targetRow.kcal, carbs: targetRow.carbs, protein: targetRow.protein, fat: targetRow.fat } : DEFAULT_TARGET;
+  const targetBase = targetRow
+    ? {
+        kcal: targetRow.kcal,
+        pctCarbs: targetRow.pctCarbs,
+        pctProtein: targetRow.pctProtein,
+        pctFat: targetRow.pctFat,
+        calcSex: targetRow.calcSex,
+        calcAge: targetRow.calcAge,
+        calcWeight: targetRow.calcWeight,
+        calcHeight: targetRow.calcHeight,
+        calcActivity: targetRow.calcActivity,
+        calcGoal: targetRow.calcGoal,
+        calcFormula: targetRow.calcFormula,
+      }
+    : DEFAULT_TARGET;
+  const target = { ...targetBase, ...deriveGrams(targetBase.kcal, targetBase.pctCarbs, targetBase.pctProtein, targetBase.pctFat) };
 
   // One query covers the widest period (12 months back) so every tab reuses it.
   const since = isoAdd(today, -370);

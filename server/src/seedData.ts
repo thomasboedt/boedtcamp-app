@@ -118,7 +118,7 @@ const DEMO_CLIENTS: {
   freq: string;
   scale: number;
   pin: string;
-  target: { kcal: number; carbs: number; protein: number; fat: number };
+  target: { kcal: number; pctCarbs: number; pctProtein: number; pctFat: number };
   days: { n: number; titel: string; rotate: boolean; rowing: boolean; rowBase: number; rowPct: number; rowWeek: number; items: Item[] }[];
 }[] = [
   {
@@ -128,7 +128,7 @@ const DEMO_CLIENTS: {
     freq: "2-3x per week",
     scale: 1,
     pin: "194823",
-    target: { kcal: 1900, carbs: 190, protein: 115, fat: 65 },
+    target: { kcal: 1900, pctCarbs: 40, pctProtein: 25, pctFat: 35 },
     days: [
       { n: 1, titel: "Training 1 · Full body A", rotate: true, rowing: false, rowBase: 10, rowPct: 10, rowWeek: 3, items: day1(1) },
       { n: 2, titel: "Training 2 · Full body B", rotate: true, rowing: false, rowBase: 10, rowPct: 10, rowWeek: 3, items: day2(1) },
@@ -142,7 +142,7 @@ const DEMO_CLIENTS: {
     freq: "2x per week",
     scale: 0.65,
     pin: "305671",
-    target: { kcal: 1750, carbs: 170, protein: 100, fat: 62 },
+    target: { kcal: 1750, pctCarbs: 40, pctProtein: 24, pctFat: 36 },
     days: [
       { n: 1, titel: "Training 1 · Full body A", rotate: true, rowing: false, rowBase: 8, rowPct: 8, rowWeek: 1, items: day1(0.65) },
       { n: 3, titel: "Training 3 · Stabiliteit & roeien", rotate: false, rowing: true, rowBase: 8, rowPct: 8, rowWeek: 1, items: day3(0.65) },
@@ -155,7 +155,7 @@ const DEMO_CLIENTS: {
     freq: "4x per week",
     scale: 1.6,
     pin: "728490",
-    target: { kcal: 3100, carbs: 380, protein: 165, fat: 95 },
+    target: { kcal: 3100, pctCarbs: 49, pctProtein: 22, pctFat: 29 },
     days: [
       { n: 1, titel: "Training 1 · Full body A", rotate: true, rowing: false, rowBase: 12, rowPct: 12, rowWeek: 5, items: day1(1.6) },
       { n: 2, titel: "Training 2 · Full body B", rotate: true, rowing: false, rowBase: 12, rowPct: 12, rowWeek: 5, items: day2(1.6) },

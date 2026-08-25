@@ -129,7 +129,10 @@ export default function FoodDiary({ date, entries, totals, targets, onPrevDay, o
                   <div style={{ flex: "none", width: 38, height: 38, borderRadius: 10, background: "#f4f6f8" }} />
                   <button onClick={() => onEditEntry(i)} style={{ flex: 1, minWidth: 0, border: 0, background: "transparent", textAlign: "left", cursor: "pointer", padding: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 600, color: "#000" }}>{i.naam}</div>
-                    <div style={{ fontSize: 11.5, color: "#8b8f94", marginTop: 2 }}>{Math.round(i.grams)} g{i.merk ? " · " + i.merk : ""}</div>
+                    <div style={{ fontSize: 11.5, color: "#8b8f94", marginTop: 2 }}>
+                      {i.count > 1 ? `${i.count} × ${Math.round(i.unit)} g` : `${Math.round(i.grams)} g`}
+                      {i.merk ? " · " + i.merk : ""}
+                    </div>
                   </button>
                   <div style={{ flex: "none", textAlign: "right" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#1f5dc4" }}>{i.kcal} kcal</div>

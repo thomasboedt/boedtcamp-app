@@ -5,9 +5,13 @@ const numField = { display: "flex", alignItems: "center", gap: 6, border: "1.5px
 const stepBtn = { width: 48, height: 48, flex: "none", border: "1.5px solid #c2c8cf", background: "#fff", borderRadius: 14, fontSize: 22, color: "#454e58", cursor: "pointer" };
 
 export default function FoodEditScreen({ draft, setDraft, onCancel, onSave, saving, saveError }) {
-  function setGrams(grams) {
-    const g = Math.max(1, Math.round(grams));
-    setDraft((d) => ({ ...d, grams: g, ...scaleToGrams(d.per100, g) }));
+  function setUnitCount(unit, count) {
+    setDraft((d) => {
+      const u = Math.max(1, Math.round(unit === undefined ? d.unit ?? d.grams : unit));
+      const n = Math.max(1, Math.round(count === undefined ? d.count ?? 1 : count));
+      const g = u * n;
+      return { ...d, unit: u, count: n, grams: g, ...scaleToGrams(d.per100, g) };
+    });
   }
 
   const per100 = draft.per100;
@@ -47,21 +51,43 @@ export default function FoodEditScreen({ draft, setDraft, onCancel, onSave, savi
         <div style={{ background: "#fff", border: "1.5px solid #e8ebee", borderRadius: 16, padding: 16, marginTop: 14 }}>
           <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#8b8f94" }}>Hoeveel heb je gegeten?</div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
-            <button onClick={() => setGrams(draft.grams - 10)} style={stepBtn}>
+            <div style={{ flex: "none", width: 70, fontSize: 13, color: "#454e58" }}>Portie</div>
+            <button onClick={() => setUnitCount((draft.unit ?? draft.grams) - 10, undefined)} style={{ ...stepBtn, width: 46, height: 46 }}>
               −
             </button>
             <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
               <input
                 type="number"
-                value={draft.grams}
-                onChange={(e) => setGrams(Number(e.target.value))}
-                style={{ width: "100%", border: 0, outline: "none", textAlign: "center", fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 30, color: "#000", background: "transparent" }}
+                value={draft.unit ?? draft.grams}
+                onChange={(e) => setUnitCount(Number(e.target.value), undefined)}
+                style={{ width: "100%", border: 0, outline: "none", textAlign: "center", fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 26, color: "#000", background: "transparent" }}
               />
-              <div style={{ fontSize: 12, color: "#8b8f94", marginTop: -2 }}>gram / ml</div>
+              <div style={{ fontSize: 11.5, color: "#8b8f94", marginTop: -2, whiteSpace: "nowrap" }}>gram / ml</div>
             </div>
-            <button onClick={() => setGrams(draft.grams + 10)} style={stepBtn}>
+            <button onClick={() => setUnitCount((draft.unit ?? draft.grams) + 10, undefined)} style={{ ...stepBtn, width: 46, height: 46 }}>
               +
             </button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
+            <div style={{ flex: "none", width: 70, fontSize: 13, color: "#454e58" }}>Aantal</div>
+            <button onClick={() => setUnitCount(undefined, (draft.count || 1) - 1)} style={{ ...stepBtn, width: 46, height: 46 }}>
+              −
+            </button>
+            <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+              <input
+                type="number"
+                value={draft.count || 1}
+                onChange={(e) => setUnitCount(undefined, Number(e.target.value))}
+                style={{ width: "100%", border: 0, outline: "none", textAlign: "center", fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 26, color: "#000", background: "transparent" }}
+              />
+              <div style={{ fontSize: 11.5, color: "#8b8f94", marginTop: -2, whiteSpace: "nowrap" }}>keer</div>
+            </div>
+            <button onClick={() => setUnitCount(undefined, (draft.count || 1) + 1)} style={{ ...stepBtn, width: 46, height: 46 }}>
+              +
+            </button>
+          </div>
+          <div style={{ fontSize: 13, color: "#1f5dc4", fontWeight: 600, marginTop: 14, paddingTop: 12, borderTop: "1px solid #f4f6f8" }}>
+            {(draft.count || 1)} × {Math.round(draft.unit ?? draft.grams)} g = {Math.round(draft.grams)} g in totaal
           </div>
         </div>
 
