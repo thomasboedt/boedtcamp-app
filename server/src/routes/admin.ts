@@ -83,34 +83,37 @@ router.get("/migrate-nutrition", async (req, res) => {
     await prisma.$executeRawUnsafe(`DELETE FROM "NutritionTarget" WHERE "clientId" IS NULL`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ALTER COLUMN "clientId" SET NOT NULL`);
 
+    // FoodEntry, unlike NutritionTarget, turned out to already exist in
+    // production under this exact name with an entirely different, unrelated
+    // set of Dutch-named columns (datum, hoeveelheid, eenheid, eiwit,
+    // koolhydraten, vet, bronRef, loggedAt — nothing in this codebase writes
+    // those). ADD COLUMN IF NOT EXISTS is a no-op for any name that happened
+    // to already exist (kcal, naam, merk, bron all collided this way), which
+    // silently inherited the old, wrong type for "kcal" (double precision
+    // instead of the Int this app expects). Patching around that piecemeal
+    // is too fragile — drop and recreate clean. Confirmed nothing in the
+    // deployed app has ever successfully written a row here, so there's no
+    // real data under either schema to lose.
+    await prisma.$executeRawUnsafe(`DROP TABLE IF EXISTS "FoodEntry" CASCADE`);
     await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "FoodEntry" (
+      CREATE TABLE "FoodEntry" (
         "id" TEXT NOT NULL,
+        "clientId" TEXT NOT NULL,
+        "dateIso" TEXT NOT NULL,
+        "meal" TEXT NOT NULL,
+        "naam" TEXT NOT NULL,
+        "merk" TEXT,
+        "barcode" TEXT,
+        "grams" DOUBLE PRECISION NOT NULL,
+        "kcal" INTEGER NOT NULL,
+        "carbs" DOUBLE PRECISION NOT NULL,
+        "protein" DOUBLE PRECISION NOT NULL,
+        "fat" DOUBLE PRECISION NOT NULL,
+        "bron" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "FoodEntry_pkey" PRIMARY KEY ("id")
       )
     `);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "clientId" TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "dateIso" TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "meal" TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "naam" TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "merk" TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "barcode" TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "grams" DOUBLE PRECISION`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "kcal" INTEGER`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "carbs" DOUBLE PRECISION`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "protein" DOUBLE PRECISION`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "fat" DOUBLE PRECISION`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "bron" TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT now()`);
-    // Same reasoning as above: drop any row that predates one of these columns
-    // and so can't satisfy NOT NULL — never real, usable nutrition data.
-    await prisma.$executeRawUnsafe(`
-      DELETE FROM "FoodEntry" WHERE "clientId" IS NULL OR "dateIso" IS NULL OR "meal" IS NULL OR "naam" IS NULL
-        OR "grams" IS NULL OR "kcal" IS NULL OR "carbs" IS NULL OR "protein" IS NULL OR "fat" IS NULL OR "bron" IS NULL
-    `);
-    for (const col of ["clientId", "dateIso", "meal", "naam", "grams", "kcal", "carbs", "protein", "fat", "bron"]) {
-      await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ALTER COLUMN "${col}" SET NOT NULL`);
-    }
 
     await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "NutritionTarget_clientId_key" ON "NutritionTarget"("clientId")`);
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "FoodEntry_clientId_dateIso_idx" ON "FoodEntry"("clientId", "dateIso")`);
