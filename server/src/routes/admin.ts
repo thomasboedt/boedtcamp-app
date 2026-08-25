@@ -77,6 +77,10 @@ router.get("/migrate-nutrition", async (req, res) => {
     await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "protein" INTEGER NOT NULL DEFAULT 120`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "fat" INTEGER NOT NULL DEFAULT 70`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT now()`);
+    // Rows left over from an earlier partial run (e.g. an "id"-only row from
+    // before this column existed) can't satisfy NOT NULL — the feature has
+    // never worked end to end yet, so nothing here is real user data to lose.
+    await prisma.$executeRawUnsafe(`DELETE FROM "NutritionTarget" WHERE "clientId" IS NULL`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ALTER COLUMN "clientId" SET NOT NULL`);
 
     await prisma.$executeRawUnsafe(`
@@ -98,6 +102,12 @@ router.get("/migrate-nutrition", async (req, res) => {
     await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "fat" DOUBLE PRECISION`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "bron" TEXT`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT now()`);
+    // Same reasoning as above: drop any row that predates one of these columns
+    // and so can't satisfy NOT NULL — never real, usable nutrition data.
+    await prisma.$executeRawUnsafe(`
+      DELETE FROM "FoodEntry" WHERE "clientId" IS NULL OR "dateIso" IS NULL OR "meal" IS NULL OR "naam" IS NULL
+        OR "grams" IS NULL OR "kcal" IS NULL OR "carbs" IS NULL OR "protein" IS NULL OR "fat" IS NULL OR "bron" IS NULL
+    `);
     for (const col of ["clientId", "dateIso", "meal", "naam", "grams", "kcal", "carbs", "protein", "fat", "bron"]) {
       await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ALTER COLUMN "${col}" SET NOT NULL`);
     }
