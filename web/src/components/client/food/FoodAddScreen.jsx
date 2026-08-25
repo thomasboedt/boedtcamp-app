@@ -19,7 +19,7 @@ const tabStyle = (active) => ({
 function productToDraft(product, grams) {
   const g = Math.max(1, Math.round(grams || product.defaultGrams || 100));
   const per100 = { kcal100: product.kcal100, carbs100: product.carbs100, protein100: product.protein100, fat100: product.fat100 };
-  return { naam: product.naam, merk: product.merk || "", barcode: product.code || "", per100, grams: g, meal: suggestMeal(), bron: product.bron, ...scaleToGrams(per100, g) };
+  return { naam: product.naam, merk: product.merk || "", barcode: product.code || "", per100, grams: g, unit: g, count: 1, meal: suggestMeal(), bron: product.bron, ...scaleToGrams(per100, g) };
 }
 
 function aiItemToDraft(item) {
@@ -30,7 +30,7 @@ function aiItemToDraft(item) {
     protein100: ((Number(item.eiwitten) || 0) * 100) / g,
     fat100: ((Number(item.vetten) || 0) * 100) / g,
   };
-  return { naam: item.naam || "Onbekend gerecht", merk: "Geschat uit je foto", barcode: "", per100, grams: g, meal: suggestMeal(), bron: "foto-herkenning", ...scaleToGrams(per100, g) };
+  return { naam: item.naam || "Onbekend gerecht", merk: "Geschat uit je foto", barcode: "", per100, grams: g, unit: g, count: 1, meal: suggestMeal(), bron: "foto-herkenning", ...scaleToGrams(per100, g) };
 }
 
 function resizeToBase64(file, maxSize) {

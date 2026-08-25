@@ -38,16 +38,29 @@ model Client {
 
 // Daily kcal/macro goals the trainer sets for this client. Shown to the client
 // in the food diary as a target, and used on the trainer dashboard to compute
-// "% of target" overviews.
+// "% of target" overviews. Macros are stored as a percentage split of kcal
+// (must sum to 100, enforced in the UI not the DB) rather than absolute grams,
+// so grams are always derived: carbs/protein at 4 kcal/g, fat at 9 kcal/g.
 model NutritionTarget {
   id        String   @id @default(uuid())
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId  String   @unique
   kcal      Int      @default(2000)
-  carbs     Int      @default(220) // grams
-  protein   Int      @default(120) // grams
-  fat       Int      @default(70) // grams
+  pctCarbs  Int      @default(45) // % of kcal from carbohydrates
+  pctProtein Int     @default(25) // % of kcal from protein
+  pctFat    Int      @default(30) // % of kcal from fat
   updatedAt DateTime @updatedAt
+
+  // BMR/TDEE calculator inputs, persisted per client so the trainer doesn't
+  // re-enter them each time — purely advisory, feeds the "apply as kcal
+  // target" button and nothing else reads these.
+  calcSex      String? // vrouw | man
+  calcAge      Int?
+  calcWeight   Float?  // kg
+  calcHeight   Float?  // cm
+  calcActivity String? // zittend | licht | matig | zwaar | topsport
+  calcGoal     String? // afvallen | onderhoud | aankomen
+  calcFormula  String? // mifflin | harris
 }
 
 // One logged food item (a client's nutrition diary entry), found via barcode
@@ -63,7 +76,9 @@ model FoodEntry {
   naam      String
   merk      String?
   barcode   String?
-  grams     Float
+  grams     Float // total logged amount: unit * count
+  unit      Float @default(1) // portion size in grams/ml (e.g. one slice)
+  count     Int   @default(1) // how many portions (e.g. 2 slices) — display only, grams is the source of truth
   kcal      Int
   carbs     Float
   protein   Float

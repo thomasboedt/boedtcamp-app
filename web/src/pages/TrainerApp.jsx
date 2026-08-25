@@ -91,7 +91,7 @@ export default function TrainerApp() {
 
             {view === "opvolging" && <Opvolging clientId={client.id} />}
             {view === "editor" && <ProgramEditor client={client} onClientsChanged={refreshClients} />}
-            {view === "voeding" && <Nutrition clientId={client.id} />}
+            {view === "voeding" && <Nutrition clientId={client.id} client={client} />}
           </>
         )}
 

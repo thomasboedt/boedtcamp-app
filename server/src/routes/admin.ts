@@ -157,4 +157,92 @@ router.get("/migrate-nutrition", async (req, res) => {
   }
 });
 
+// One-time production bootstrap for the 20260825085232_nutrition_targets_v2
+// migration: NutritionTarget moves from absolute-gram macros to a % split of
+// kcal (+ persisted BMR calculator inputs), and FoodEntry gains unit/count
+// for the portion×count entry UI. Existing carbs/protein/fat grams are
+// converted to their equivalent % of kcal before the old columns are
+// dropped, preserving whatever a trainer already configured.
+//
+// Written to tolerate being called more than once, INCLUDING after the old
+// carbs/protein/fat columns are already gone (the backfill only runs while
+// they still exist) — the previous migration endpoint here taught the hard
+// way that "safe to re-run" has to mean "safe after partial success", not
+// just "safe from a clean slate".
+router.get("/migrate-nutrition-targets-v2", async (req, res) => {
+  const expected = process.env.SEED_SECRET;
+  if (!expected || req.query.secret !== expected) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  try {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "pctCarbs" INTEGER`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "pctProtein" INTEGER`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "pctFat" INTEGER`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "calcSex" TEXT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "calcAge" INTEGER`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "calcWeight" DOUBLE PRECISION`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "calcHeight" DOUBLE PRECISION`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "calcActivity" TEXT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "calcGoal" TEXT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ADD COLUMN IF NOT EXISTS "calcFormula" TEXT`);
+
+    // Only touches carbs/protein/fat while they still exist, so a second
+    // call (after the DROP COLUMN below already ran once) is a no-op here
+    // instead of an error.
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'NutritionTarget' AND column_name = 'carbs') THEN
+          UPDATE "NutritionTarget" SET
+            "pctCarbs" = COALESCE("pctCarbs", ROUND(("carbs" * 4 * 100.0) / NULLIF("kcal", 0))::int),
+            "pctProtein" = COALESCE("pctProtein", ROUND(("protein" * 4 * 100.0) / NULLIF("kcal", 0))::int),
+            "pctFat" = COALESCE("pctFat", ROUND(("fat" * 9 * 100.0) / NULLIF("kcal", 0))::int);
+        END IF;
+      END $$
+    `);
+    await prisma.$executeRawUnsafe(`UPDATE "NutritionTarget" SET "pctCarbs" = 45 WHERE "pctCarbs" IS NULL`);
+    await prisma.$executeRawUnsafe(`UPDATE "NutritionTarget" SET "pctProtein" = 25 WHERE "pctProtein" IS NULL`);
+    await prisma.$executeRawUnsafe(`UPDATE "NutritionTarget" SET "pctFat" = 30 WHERE "pctFat" IS NULL`);
+
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ALTER COLUMN "pctCarbs" SET NOT NULL`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ALTER COLUMN "pctCarbs" SET DEFAULT 45`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ALTER COLUMN "pctProtein" SET NOT NULL`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ALTER COLUMN "pctProtein" SET DEFAULT 25`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ALTER COLUMN "pctFat" SET NOT NULL`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" ALTER COLUMN "pctFat" SET DEFAULT 30`);
+
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" DROP COLUMN IF EXISTS "carbs"`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" DROP COLUMN IF EXISTS "protein"`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "NutritionTarget" DROP COLUMN IF EXISTS "fat"`);
+
+    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "unit" DOUBLE PRECISION`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ADD COLUMN IF NOT EXISTS "count" INTEGER`);
+    await prisma.$executeRawUnsafe(`UPDATE "FoodEntry" SET "unit" = "grams" WHERE "unit" IS NULL`);
+    await prisma.$executeRawUnsafe(`UPDATE "FoodEntry" SET "count" = 1 WHERE "count" IS NULL`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ALTER COLUMN "unit" SET NOT NULL`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ALTER COLUMN "unit" SET DEFAULT 1`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ALTER COLUMN "count" SET NOT NULL`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "FoodEntry" ALTER COLUMN "count" SET DEFAULT 1`);
+
+    let recorded = false;
+    try {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "_prisma_migrations" (id, checksum, migration_name, started_at, finished_at, applied_steps_count)
+         SELECT gen_random_uuid()::text, $1, $2, now(), now(), 1
+         WHERE NOT EXISTS (SELECT 1 FROM "_prisma_migrations" WHERE migration_name = $3)`,
+        "5615d5bd0ca7e97636906156d15e8434d6b745452dfccc9b9b85617e97cb9b88",
+        "20260825085232_nutrition_targets_v2",
+        "20260825085232_nutrition_targets_v2"
+      );
+      recorded = true;
+    } catch {
+      // _prisma_migrations missing or unreachable — the columns above are still applied either way.
+    }
+
+    res.json({ ok: true, recordedInMigrationsTable: recorded });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : "Unknown error" });
+  }
+});
+
 export default router;

@@ -4,16 +4,18 @@ import { prisma } from "../db";
 import { requireClient } from "../middleware/auth";
 import { lookupBarcode, searchFood } from "../lib/openFoodFacts";
 import { recognizeFoodPhoto } from "../lib/nutritionAi";
+import { deriveGrams } from "../lib/nutrition";
 
 const router = Router();
 router.use(requireClient);
 
-const DEFAULT_TARGET = { kcal: 2000, carbs: 220, protein: 120, fat: 70 };
+const DEFAULT_TARGET = { kcal: 2000, pctCarbs: 45, pctProtein: 25, pctFat: 30 };
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 router.get("/nutrition/targets", async (req, res) => {
   const t = await prisma.nutritionTarget.findUnique({ where: { clientId: req.clientId! } });
-  res.json(t ? { kcal: t.kcal, carbs: t.carbs, protein: t.protein, fat: t.fat } : DEFAULT_TARGET);
+  const base = t ? { kcal: t.kcal, pctCarbs: t.pctCarbs, pctProtein: t.pctProtein, pctFat: t.pctFat } : DEFAULT_TARGET;
+  res.json({ ...base, ...deriveGrams(base.kcal, base.pctCarbs, base.pctProtein, base.pctFat) });
 });
 
 router.get("/nutrition/day", async (req, res) => {
@@ -40,6 +42,8 @@ const entryInput = z.object({
   merk: z.string().optional().nullable(),
   barcode: z.string().optional().nullable(),
   grams: z.number().positive(),
+  unit: z.number().positive().optional(),
+  count: z.number().int().positive().optional(),
   kcal: z.number().min(0),
   carbs: z.number().min(0),
   protein: z.number().min(0),
@@ -60,6 +64,8 @@ router.post("/nutrition/entries", async (req, res) => {
 const entryUpdateInput = z.object({
   meal: z.enum(["ontbijt", "lunch", "avond", "snack"]).optional(),
   grams: z.number().positive().optional(),
+  unit: z.number().positive().optional(),
+  count: z.number().int().positive().optional(),
   kcal: z.number().min(0).optional(),
   carbs: z.number().min(0).optional(),
   protein: z.number().min(0).optional(),
