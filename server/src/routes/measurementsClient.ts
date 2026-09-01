@@ -35,6 +35,18 @@ router.get("/measurements/day", async (req, res) => {
   res.json({ measurement: null, fallbackHeight: latest?.height ?? null, calc: deriveMeasCalc({}) });
 });
 
+// The most recently registered measurement (any date), used for the small
+// BMI/WHR/WHtR teaser cards on the kies screen — those should reflect the
+// client's last-known numbers, not just whatever (usually nothing) is filled
+// in for today.
+router.get("/measurements/latest", async (req, res) => {
+  const latest = await prisma.measurement.findFirst({
+    where: { clientId: req.clientId! },
+    orderBy: { dateIso: "desc" },
+  });
+  res.json(withCalc(latest));
+});
+
 const measurementInput = z.object({
   dateIso: z.string().regex(ISO_DATE),
   weight: z.number().positive().max(400).optional().nullable(),

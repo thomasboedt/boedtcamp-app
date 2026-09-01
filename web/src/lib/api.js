@@ -74,6 +74,7 @@ export const api = {
 
   // client: measurements
   measurementDay: (date) => request(`/client/measurements/day?date=${date}`),
+  latestMeasurement: () => request("/client/measurements/latest"),
   saveMeasurement: (data) => request("/client/measurements", { method: "PATCH", body: data }),
 
   // trainer: measurements
