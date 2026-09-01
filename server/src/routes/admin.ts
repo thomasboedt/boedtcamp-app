@@ -245,4 +245,66 @@ router.get("/migrate-nutrition-targets-v2", async (req, res) => {
   }
 });
 
+// One-time production bootstrap for the 20260901133700_add_measurements
+// migration: a brand-new table, so — unlike the two migrations above — this
+// is pure additive DDL with no data conversion or risk of colliding with a
+// pre-existing column of the wrong type.
+router.get("/migrate-measurements", async (req, res) => {
+  const expected = process.env.SEED_SECRET;
+  if (!expected || req.query.secret !== expected) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "Measurement" (
+        "id" TEXT NOT NULL,
+        "clientId" TEXT NOT NULL,
+        "dateIso" TEXT NOT NULL,
+        "weight" DOUBLE PRECISION,
+        "height" DOUBLE PRECISION,
+        "fat" DOUBLE PRECISION,
+        "muscle" DOUBLE PRECISION,
+        "water" DOUBLE PRECISION,
+        "visceral" INTEGER,
+        "waist" DOUBLE PRECISION,
+        "hip" DOUBLE PRECISION,
+        "stress" INTEGER,
+        "sleep" INTEGER,
+        "energy" INTEGER,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "Measurement_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Measurement_clientId_dateIso_idx" ON "Measurement"("clientId", "dateIso")`);
+    await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "Measurement_clientId_dateIso_key" ON "Measurement"("clientId", "dateIso")`);
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        ALTER TABLE "Measurement" ADD CONSTRAINT "Measurement_clientId_fkey"
+          FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN NULL; END $$
+    `);
+
+    let recorded = false;
+    try {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "_prisma_migrations" (id, checksum, migration_name, started_at, finished_at, applied_steps_count)
+         SELECT gen_random_uuid()::text, $1, $2, now(), now(), 1
+         WHERE NOT EXISTS (SELECT 1 FROM "_prisma_migrations" WHERE migration_name = $3)`,
+        "3c7cd175b35b3a601c99d1efb3fba866f638fd24b23916d67c6fd8f587e99835",
+        "20260901133700_add_measurements",
+        "20260901133700_add_measurements"
+      );
+      recorded = true;
+    } catch {
+      // _prisma_migrations missing or unreachable — the table above is still created either way.
+    }
+
+    res.json({ ok: true, recordedInMigrationsTable: recorded });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : "Unknown error" });
+  }
+});
+
 export default router;

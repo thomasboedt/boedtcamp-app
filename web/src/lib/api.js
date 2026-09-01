@@ -65,10 +65,22 @@ export const api = {
   searchFood: (q) => request(`/client/nutrition/search?q=${encodeURIComponent(q)}`),
   lookupBarcode: (code) => request(`/client/nutrition/barcode/${encodeURIComponent(code)}`),
   recognizeFoodPhoto: (imageBase64) => request("/client/nutrition/photo", { method: "POST", body: { imageBase64 } }),
+  recognizeFoodVoice: (text) => request("/client/nutrition/voice", { method: "POST", body: { text } }),
+  recentFoodDays: (before) => request(`/client/nutrition/recent-days?before=${before}`),
 
   // trainer: nutrition
   setNutritionTargets: (clientId, data) => request(`/trainer/clients/${clientId}/nutrition-targets`, { method: "PUT", body: data }),
   clientNutrition: (clientId, period, day) => request(`/trainer/clients/${clientId}/nutrition?period=${period}${day ? `&day=${day}` : ""}`),
+
+  // client: measurements
+  measurementDay: (date) => request(`/client/measurements/day?date=${date}`),
+  saveMeasurement: (data) => request("/client/measurements", { method: "PATCH", body: data }),
+
+  // trainer: measurements
+  clientMeasurements: (clientId) => request(`/trainer/clients/${clientId}/measurements`),
+
+  // trainer: program day copy
+  copyDayToClient: (dayId, targetClientId) => request(`/trainer/days/${dayId}/copy-to-client`, { method: "POST", body: { targetClientId } }),
 
   // client app
   clientDays: () => request("/client/days"),

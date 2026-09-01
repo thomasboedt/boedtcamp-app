@@ -34,6 +34,7 @@ model Client {
   sessions   Session[]
   nutritionTarget NutritionTarget?
   foodEntries     FoodEntry[]
+  measurements    Measurement[]
 }
 
 // Daily kcal/macro goals the trainer sets for this client. Shown to the client
@@ -86,6 +87,31 @@ model FoodEntry {
   bron      String // open-food-facts | basislijst | foto-herkenning | handmatig
   createdAt DateTime @default(now())
 
+  @@index([clientId, dateIso])
+}
+
+// One daily body-measurement registration by the client (upsert on dateIso).
+// BMI/WHR/WHtR are derived on the fly from weight/height/waist/hip, never stored.
+model Measurement {
+  id        String   @id @default(uuid())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String
+  dateIso   String // "YYYY-MM-DD"
+  weight    Float? // kg
+  height    Float? // cm
+  fat       Float? // %
+  muscle    Float? // kg
+  water     Float? // %
+  visceral  Int? // visceral fat level
+  waist     Float? // cm
+  hip       Float? // cm
+  stress    Int? // 1-10, 10 = most stressed
+  sleep     Int? // 1-10, 10 = most rested
+  energy    Int? // 1-10, 10 = most energetic
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([clientId, dateIso])
   @@index([clientId, dateIso])
 }
 

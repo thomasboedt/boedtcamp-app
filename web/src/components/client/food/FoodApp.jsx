@@ -3,12 +3,14 @@ import { api } from "../../../lib/api.js";
 import FoodDiary from "./FoodDiary.jsx";
 import FoodAddScreen from "./FoodAddScreen.jsx";
 import FoodEditScreen from "./FoodEditScreen.jsx";
+import CopyDayScreen from "./CopyDayScreen.jsx";
 import { isoAdd, isoToday } from "./foodShared.js";
 
 const DEFAULT_TARGETS = { kcal: 2000, carbs: 220, protein: 120, fat: 70 };
 
 export default function FoodApp({ onBack }) {
-  const [screen, setScreen] = useState("diary"); // diary | add | edit
+  const [screen, setScreen] = useState("diary"); // diary | add | edit | copy
+  const [copying, setCopying] = useState(false);
   const [addMode, setAddMode] = useState("search");
   const [addPhotoFile, setAddPhotoFile] = useState(null);
   const [date, setDate] = useState(isoToday());
@@ -153,6 +155,39 @@ export default function FoodApp({ onBack }) {
     await loadDay(date);
   }
 
+  async function copyEntries(picked) {
+    setCopying(true);
+    try {
+      await Promise.all(
+        picked.map((e) =>
+          api.addFoodEntry({
+            dateIso: date,
+            meal: e.meal,
+            naam: e.naam,
+            merk: e.merk || null,
+            barcode: e.barcode || null,
+            grams: e.grams,
+            unit: e.unit,
+            count: e.count,
+            kcal: e.kcal,
+            carbs: e.carbs,
+            protein: e.protein,
+            fat: e.fat,
+            bron: e.bron,
+          })
+        )
+      );
+      setScreen("diary");
+      await loadDay(date);
+    } finally {
+      setCopying(false);
+    }
+  }
+
+  if (screen === "copy") {
+    return <CopyDayScreen targetDate={date} copying={copying} onBack={() => setScreen("diary")} onCopy={copyEntries} />;
+  }
+
   if (screen === "add") {
     return (
       <FoodAddScreen
@@ -176,7 +211,7 @@ export default function FoodApp({ onBack }) {
         saveError={saveError}
         onCancel={() => {
           setDraft(null);
-          setScreen(addMode === "photo" ? "add" : "diary");
+          setScreen(addMode === "photo" || addMode === "voice" ? "add" : "diary");
         }}
         onSave={saveDraft}
       />
@@ -195,6 +230,8 @@ export default function FoodApp({ onBack }) {
       onPhotoFile={(file) => file && openAdd("photo", file)}
       onOpenScan={() => openAdd("scan")}
       onOpenSearch={() => openAdd("search")}
+      onOpenVoice={() => openAdd("voice")}
+      onOpenCopy={() => setScreen("copy")}
       onEditEntry={openEdit}
       onRemoveEntry={removeEntry}
       onBack={onBack}

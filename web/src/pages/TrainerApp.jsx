@@ -7,6 +7,7 @@ import Opvolging from "../components/trainer/Opvolging.jsx";
 import ProgramEditor from "../components/trainer/ProgramEditor.jsx";
 import ClientSwitcher from "../components/trainer/ClientSwitcher.jsx";
 import Nutrition from "../components/trainer/Nutrition.jsx";
+import Measurements from "../components/trainer/Measurements.jsx";
 
 export default function TrainerApp() {
   const navigate = useNavigate();
@@ -86,12 +87,16 @@ export default function TrainerApp() {
                 <button onClick={() => setView("voeding")} style={segLight(view === "voeding")}>
                   Voeding
                 </button>
+                <button onClick={() => setView("metingen")} style={segLight(view === "metingen")}>
+                  Metingen
+                </button>
               </div>
             </div>
 
             {view === "opvolging" && <Opvolging clientId={client.id} />}
-            {view === "editor" && <ProgramEditor client={client} onClientsChanged={refreshClients} />}
+            {view === "editor" && <ProgramEditor client={client} clients={clients} onClientsChanged={refreshClients} />}
             {view === "voeding" && <Nutrition clientId={client.id} client={client} />}
+            {view === "metingen" && <Measurements clientId={client.id} />}
           </>
         )}
 

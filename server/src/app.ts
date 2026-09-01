@@ -10,6 +10,8 @@ import clientAppRoutes from "./routes/clientApp";
 import adminRoutes from "./routes/admin";
 import nutritionClientRoutes from "./routes/nutritionClient";
 import nutritionTrainerRoutes from "./routes/nutritionTrainer";
+import measurementsClientRoutes from "./routes/measurementsClient";
+import measurementsTrainerRoutes from "./routes/measurementsTrainer";
 
 export const app = express();
 
@@ -28,8 +30,10 @@ app.use("/api/trainer", programRoutes);
 app.use("/api/trainer", libraryRoutes);
 app.use("/api/trainer", dashboardRoutes);
 app.use("/api/trainer", nutritionTrainerRoutes);
+app.use("/api/trainer", measurementsTrainerRoutes);
 app.use("/api/client", clientAppRoutes);
 app.use("/api/client", nutritionClientRoutes);
+app.use("/api/client", measurementsClientRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
