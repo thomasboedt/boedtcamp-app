@@ -142,4 +142,63 @@ router.post("/items/:itemId/move", async (req, res) => {
   res.json({ ok: true });
 });
 
+const copyInput = z.object({ targetClientId: z.string().min(1) });
+
+router.post("/days/:dayId/copy-to-client", async (req, res) => {
+  const parsed = copyInput.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Kies een klant om naar te kopiëren." });
+    return;
+  }
+  const source = await prisma.programDay.findUnique({
+    where: { id: req.params.dayId },
+    include: { items: { orderBy: { volgorde: "asc" } } },
+  });
+  if (!source) {
+    res.status(404).json({ error: "Trainingsdag niet gevonden." });
+    return;
+  }
+  const targetClient = await prisma.client.findUnique({ where: { id: parsed.data.targetClientId } });
+  const sourceClient = await prisma.client.findUnique({ where: { id: source.clientId } });
+  if (!targetClient) {
+    res.status(404).json({ error: "Klant niet gevonden." });
+    return;
+  }
+
+  const max = await prisma.programDay.aggregate({ where: { clientId: targetClient.id }, _max: { volgorde: true } });
+  const volgorde = (max._max.volgorde || 0) + 1;
+  const titel = sourceClient ? `${source.titel} · van ${sourceClient.naam.split(" ")[0]}` : source.titel;
+
+  const day = await prisma.programDay.create({
+    data: {
+      clientId: targetClient.id,
+      volgorde,
+      titel,
+      rotate: source.rotate,
+      rowing: source.rowing,
+      rowBase: source.rowBase,
+      rowPct: source.rowPct,
+      rowWeek: source.rowWeek,
+      items: {
+        create: source.items.map((item, i) => ({
+          volgorde: i + 1,
+          naam: item.naam,
+          block: item.block,
+          type: item.type,
+          unit: item.unit,
+          sets: item.sets,
+          repsOfSec: item.repsOfSec,
+          doelgewicht: item.doelgewicht,
+          restSec: item.restSec,
+          videoUrl: item.videoUrl,
+          notitie: item.notitie,
+          bron: item.bron,
+        })),
+      },
+    },
+    include: { items: { orderBy: { volgorde: "asc" } } },
+  });
+  res.status(201).json(day);
+});
+
 export default router;

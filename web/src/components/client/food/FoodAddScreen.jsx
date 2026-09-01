@@ -33,6 +33,22 @@ function aiItemToDraft(item) {
   return { naam: item.naam || "Onbekend gerecht", merk: "Geschat uit je foto", barcode: "", per100, grams: g, unit: g, count: 1, meal: suggestMeal(), bron: "foto-herkenning", ...scaleToGrams(per100, g) };
 }
 
+const VOICE_EXAMPLES = ["2 volkoren boterhammen van 35 gram met kaas", "Bord spaghetti bolognese met parmezaan", "Kom yoghurt met een handvol amandelen"];
+
+function voiceItemToDraft(item) {
+  const cnt = Math.max(1, Math.round(Number(item.aantal) || 1));
+  const per = Math.max(0, Number(item.gramPerStuk) || 0);
+  const tot = Math.max(1, Number(item.gram) || per * cnt || 100);
+  const g = per ? per * cnt : tot;
+  const per100 = {
+    kcal100: ((Number(item.kcal) || 0) * 100) / g,
+    carbs100: ((Number(item.koolhydraten) || 0) * 100) / g,
+    protein100: ((Number(item.eiwitten) || 0) * 100) / g,
+    fat100: ((Number(item.vetten) || 0) * 100) / g,
+  };
+  return { naam: item.naam || "Onbekend gerecht", merk: "Ingesproken", barcode: "", per100, grams: g, unit: per || g, count: per ? cnt : 1, meal: suggestMeal(), bron: "spraak", ...scaleToGrams(per100, g) };
+}
+
 function resizeToBase64(file, maxSize) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -79,10 +95,20 @@ export default function FoodAddScreen({ initialMode, initialPhotoFile, onBack, o
   const [aiConfidence, setAiConfidence] = useState("");
   const [aiMsg, setAiMsg] = useState("");
 
+  // voice
+  const [voiceState, setVoiceState] = useState("idle"); // idle | listening | unavailable
+  const [voiceText, setVoiceText] = useState("");
+  const recRef = useRef(null);
+
   useEffect(() => {
     if (mode === "scan") startScan();
     else stopScan();
-    return stopScan;
+    if (mode === "voice") startVoice();
+    else stopVoice();
+    return () => {
+      stopScan();
+      stopVoice();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
@@ -139,6 +165,61 @@ export default function FoodAddScreen({ initialMode, initialPhotoFile, onBack, o
         }, 600);
       })
       .catch(() => setScanStatus("unavailable"));
+  }
+
+  function startVoice() {
+    setVoiceText("");
+    setAiStatus("idle");
+    setAiItems([]);
+    setAiMsg("");
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setVoiceState("unavailable");
+      return;
+    }
+    try {
+      const rec = new SR();
+      recRef.current = rec;
+      rec.lang = "nl-BE";
+      rec.interimResults = true;
+      rec.continuous = false;
+      rec.onresult = (e) => {
+        let txt = "";
+        for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
+        setVoiceText(txt);
+      };
+      rec.onerror = () => setVoiceState("unavailable");
+      rec.onend = () => setVoiceState((s) => (s === "unavailable" ? s : "idle"));
+      rec.start();
+      setVoiceState("listening");
+    } catch {
+      setVoiceState("unavailable");
+    }
+  }
+
+  function stopVoice() {
+    try {
+      recRef.current?.stop();
+    } catch {
+      // no active recognition to stop
+    }
+  }
+
+  async function parseVoice(text) {
+    const t = (text || voiceText).trim();
+    if (t.length < 2) return;
+    setAiStatus("busy");
+    setAiItems([]);
+    setAiMsg("");
+    try {
+      const result = await api.recognizeFoodVoice(t);
+      setAiItems(result.items);
+      setAiConfidence(result.confidence || "");
+      setAiStatus("ok");
+    } catch (err) {
+      setAiStatus("fail");
+      setAiMsg(err.message || "Ik heb er geen voeding uit begrepen. Probeer het opnieuw of zoek op naam.");
+    }
   }
 
   async function submitBarcode(code) {
@@ -262,6 +343,9 @@ export default function FoodAddScreen({ initialMode, initialPhotoFile, onBack, o
             <input type="file" accept="image/*" capture="environment" onChange={(e) => handlePhotoFile(e.target.files?.[0])} style={{ display: "none" }} />
             Foto
           </label>
+          <button onClick={() => setMode("voice")} style={tabStyle(mode === "voice")}>
+            Spraak
+          </button>
         </div>
 
         {mode === "search" && (
@@ -439,6 +523,105 @@ export default function FoodAddScreen({ initialMode, initialPhotoFile, onBack, o
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {mode === "voice" && (
+          <div>
+            <div style={{ marginTop: 14, padding: 20, borderRadius: 16, background: "#000", color: "#fff", textAlign: "center" }}>
+              {voiceState === "listening" && (
+                <div>
+                  <div style={{ width: 64, height: 64, margin: "0 auto", borderRadius: 999, background: "linear-gradient(135deg,#2c9dfd,#1f5dc4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <path d="M12 19v3" />
+                    </svg>
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 600, marginTop: 14 }}>Ik luister…</div>
+                  <div style={{ fontSize: 12.5, color: "#8b8f94", marginTop: 4 }}>Bijvoorbeeld: “2 volkoren boterhammen van 35 gram”</div>
+                  <button onClick={stopVoice} style={{ marginTop: 16, padding: "11px 22px", border: "1.5px solid rgba(255,255,255,.28)", background: "transparent", color: "#fff", borderRadius: 999, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+                    Klaar met spreken
+                  </button>
+                </div>
+              )}
+              {voiceState === "unavailable" && (
+                <div style={{ fontSize: 13, lineHeight: 1.6, color: "#c7c9cc" }}>
+                  Dit toestel of deze browser laat spraakherkenning niet toe. Typ hieronder gewoon in wat je at — dat werkt precies hetzelfde.
+                </div>
+              )}
+              {voiceState === "idle" && !voiceText && <div style={{ fontSize: 13, color: "#c7c9cc" }}>Klaar. Typ hieronder wat je at, of tik nogmaals om opnieuw in te spreken.</div>}
+            </div>
+
+            <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#8b8f94", marginTop: 18 }}>Wat je zei</div>
+            <textarea
+              value={voiceText}
+              onChange={(e) => setVoiceText(e.target.value)}
+              placeholder="Bv. 2 volkoren boterhammen van 35 gram met kaas"
+              style={{ width: "100%", marginTop: 8, minHeight: 86, padding: "12px 14px", border: "1.5px solid #e8ebee", borderRadius: 12, fontSize: 15, lineHeight: 1.5, color: "#000", outline: "none", resize: "vertical", fontFamily: "inherit" }}
+            />
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <button onClick={startVoice} style={{ flex: "none", height: 46, padding: "0 16px", border: "1.5px solid #e8ebee", background: "#fff", borderRadius: 12, fontSize: 14, fontWeight: 600, color: "#454e58", cursor: "pointer" }}>
+                Opnieuw inspreken
+              </button>
+              <button onClick={() => parseVoice()} disabled={voiceText.trim().length < 2} style={{ flex: 1, height: 46, border: 0, borderRadius: 12, background: "#000", color: "#fff", fontSize: 14, fontWeight: 600, cursor: voiceText.trim().length < 2 ? "default" : "pointer", opacity: voiceText.trim().length < 2 ? 0.4 : 1 }}>
+                Omzetten naar voeding
+              </button>
+            </div>
+
+            <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#8b8f94", marginTop: 20 }}>Voorbeelden</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+              {VOICE_EXAMPLES.map((ex) => (
+                <button key={ex} onClick={() => { setVoiceText(ex); parseVoice(ex); }} style={{ padding: "11px 14px", border: "1.5px solid #e8ebee", background: "#fff", borderRadius: 12, fontSize: 13, color: "#454e58", cursor: "pointer", textAlign: "left" }}>
+                  “{ex}”
+                </button>
+              ))}
+            </div>
+
+            {aiStatus === "busy" && <div style={{ fontSize: 13, color: "#1f5dc4", fontWeight: 600, marginTop: 16 }}>Omzetten naar voedingswaarden…</div>}
+
+            {aiStatus === "ok" && (
+              <div style={{ marginTop: 18 }}>
+                <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#8b8f94" }}>Begrepen</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
+                  {aiItems.map((it, i) => (
+                    <button
+                      key={i}
+                      onClick={() => onPick(voiceItemToDraft(it))}
+                      style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, border: "1.5px solid #e8ebee", background: "#fff", borderRadius: 14, cursor: "pointer", textAlign: "left" }}
+                    >
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: "block", fontSize: 14.5, fontWeight: 600, color: "#000" }}>{it.naam}</span>
+                        <span style={{ display: "block", fontSize: 11.5, color: "#8b8f94", marginTop: 2 }}>
+                          {it.aantal > 1 && it.gramPerStuk ? `${it.aantal} × ${it.gramPerStuk} g` : `± ${it.gram} g`}
+                        </span>
+                      </span>
+                      <span style={{ flex: "none", fontSize: 13, fontWeight: 600, color: "#1f5dc4" }}>{it.kcal} kcal</span>
+                    </button>
+                  ))}
+                </div>
+                <div style={{ fontSize: 12.5, color: "#454e58", marginTop: 12, fontWeight: 600 }}>
+                  Samen {Math.round(aiItems.reduce((a, i) => a + (Number(i.kcal) || 0), 0))} kcal
+                </div>
+                <div style={{ fontSize: 12, lineHeight: 1.6, color: "#8b8f94", marginTop: 4 }}>
+                  {aiConfidence ? `Zekerheid: ${aiConfidence}.` : ""} Tik een item aan om de portie en de waarden aan te passen.
+                </div>
+                {saveError && (
+                  <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "#c9463c", marginTop: 12, background: "#fff5f4", border: "1.5px solid #ffd6d2", borderRadius: 12, padding: "10px 12px" }}>
+                    {saveError}
+                  </div>
+                )}
+                <div style={{ marginTop: 14 }}>
+                  <Button variant="primary" size="lg" onClick={() => onAddAll(aiItems.map(voiceItemToDraft))} disabled={saving} style={{ width: "100%", height: 54, fontSize: 16 }}>
+                    {saving ? "Bezig…" : "Alles toevoegen aan mijn dag"}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {aiStatus === "fail" && (
+              <div style={{ fontSize: 12.5, lineHeight: 1.6, color: "#7c8794", marginTop: 14, background: "#f4f6f8", borderRadius: 12, padding: "12px 14px" }}>{aiMsg}</div>
+            )}
           </div>
         )}
       </div>

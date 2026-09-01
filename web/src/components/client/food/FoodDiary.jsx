@@ -6,7 +6,7 @@ const rowIcon = (path) => (
   </svg>
 );
 
-export default function FoodDiary({ date, entries, totals, targets, onPrevDay, onNextDay, canGoNext, onPhotoFile, onOpenScan, onOpenSearch, onEditEntry, onRemoveEntry, onBack }) {
+export default function FoodDiary({ date, entries, totals, targets, onPrevDay, onNextDay, canGoNext, onPhotoFile, onOpenScan, onOpenSearch, onOpenVoice, onOpenCopy, onEditEntry, onRemoveEntry, onBack }) {
   const kcalLeft = targets.kcal - totals.kcal;
   const macroRows = [
     { id: "carbs", label: "Koolhydraten", val: totals.carbs, target: targets.carbs, color: "#2c9dfd" },
@@ -111,6 +111,35 @@ export default function FoodDiary({ date, entries, totals, targets, onPrevDay, o
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: "block", fontSize: 15, fontWeight: 600, color: "#000" }}>Product opzoeken</span>
               <span style={{ display: "block", fontSize: 12, color: "#8b8f94", marginTop: 1 }}>Zoek op naam of merk</span>
+            </span>
+          </button>
+          <button onClick={onOpenVoice} style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, borderRadius: 14, background: "#fff", border: "1.5px solid #e8ebee", cursor: "pointer", textAlign: "left" }}>
+            <span style={{ flex: "none", width: 38, height: 38, borderRadius: 11, background: "#f4f6f8", display: "flex", alignItems: "center", justifyContent: "center", color: "#1f5dc4" }}>
+              {rowIcon(
+                <>
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <path d="M12 19v3" />
+                </>
+              )}
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: "block", fontSize: 15, fontWeight: 600, color: "#000" }}>Inspreken</span>
+              <span style={{ display: "block", fontSize: 12, color: "#8b8f94", marginTop: 1 }}>Zeg gewoon wat je at</span>
+            </span>
+          </button>
+          <button onClick={onOpenCopy} style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, borderRadius: 14, background: "#fff", border: "1.5px solid #e8ebee", cursor: "pointer", textAlign: "left" }}>
+            <span style={{ flex: "none", width: 38, height: 38, borderRadius: 11, background: "#f4f6f8", display: "flex", alignItems: "center", justifyContent: "center", color: "#1f5dc4" }}>
+              {rowIcon(
+                <>
+                  <rect x="9" y="9" width="12" height="12" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </>
+              )}
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: "block", fontSize: 15, fontWeight: 600, color: "#000" }}>Kopiëren van een andere dag</span>
+              <span style={{ display: "block", fontSize: 12, color: "#8b8f94", marginTop: 1 }}>Neem over wat je eerder al registreerde</span>
             </span>
           </button>
         </div>

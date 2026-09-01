@@ -2,9 +2,33 @@ import { useEffect, useState } from "react";
 import { api } from "../../lib/api.js";
 import { isoToday } from "./food/foodShared.js";
 
-export default function Choice({ client, day, onTrain, onFood }) {
+function ChoiceCard({ onClick, eyebrow, title, meta, bar }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{ display: "flex", alignItems: "center", gap: 16, textAlign: "left", border: 0, cursor: "pointer", borderRadius: 18, padding: "18px 20px", color: "#fff", background: "#000 url(/background-dark-chevron.png) right center/cover no-repeat" }}
+    >
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 10, letterSpacing: ".16em", textTransform: "uppercase", color: "#2c9dfd" }}>{eyebrow}</span>
+        <span style={{ display: "block", fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 22, marginTop: 5, lineHeight: 1.05 }}>{title}</span>
+        <span style={{ display: "block", fontSize: 12.5, color: "#c7c9cc", marginTop: 5 }}>{meta}</span>
+        {bar !== undefined && (
+          <span style={{ display: "block", height: 6, borderRadius: 999, background: "rgba(255,255,255,.16)", marginTop: 9, overflow: "hidden" }}>
+            <span style={{ display: "block", height: "100%", borderRadius: 999, width: `${bar}%`, background: "linear-gradient(90deg,#2c9dfd,#1f5dc4)" }} />
+          </span>
+        )}
+      </span>
+      <span style={{ flex: "none", width: 40, height: 40, borderRadius: 999, background: "linear-gradient(135deg,#2c9dfd,#1f5dc4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>
+        ›
+      </span>
+    </button>
+  );
+}
+
+export default function Choice({ client, day, onTrain, onFood, onMeting }) {
   const [foodPct, setFoodPct] = useState(0);
-  const [foodMeta, setFoodMeta] = useState("Foto, barcode of zoeken");
+  const [foodMeta, setFoodMeta] = useState("Foto, barcode, spraak of zoeken");
+  const [measMeta, setMeasMeta] = useState("Gewicht, omtrek, BMI en hoe je je voelt");
 
   useEffect(() => {
     (async () => {
@@ -17,13 +41,21 @@ export default function Choice({ client, day, onTrain, onFood }) {
         // nutrition not reachable yet — card still works, just without a live summary
       }
     })();
+    (async () => {
+      try {
+        const res = await api.measurementDay(isoToday());
+        setMeasMeta(res.measurement ? "Vandaag al geregistreerd" : "Nog niets geregistreerd vandaag");
+      } catch {
+        // measurements not reachable yet — card still works, just without a live status
+      }
+    })();
   }, []);
 
   const today = new Date().toLocaleDateString("nl-BE", { weekday: "long", day: "numeric", month: "long" });
 
   return (
-    <div style={{ padding: "18px 16px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
-      <div>
+    <div style={{ padding: "18px 16px 24px", display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ marginBottom: 4 }}>
         <div style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "#8b8f94" }}>{today}</div>
         <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 28, color: "#000", marginTop: 4 }}>
           Hallo {client.naam.split(" ")[0]}
@@ -31,32 +63,9 @@ export default function Choice({ client, day, onTrain, onFood }) {
         <div style={{ fontSize: 15, color: "#7c8794", marginTop: 8 }}>Wat wil je doen?</div>
       </div>
 
-      <button
-        onClick={onTrain}
-        style={{ textAlign: "left", border: 0, cursor: "pointer", borderRadius: 20, padding: 24, color: "#fff", background: "#000 url(/background-dark-chevron.png) right center/cover no-repeat" }}
-      >
-        <div style={{ fontSize: 10.5, letterSpacing: ".16em", textTransform: "uppercase", color: "#2c9dfd" }}>Vandaag</div>
-        <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 30, marginTop: 10, lineHeight: 1.05 }}>Trainen</div>
-        <div style={{ fontSize: 14, color: "#c7c9cc", marginTop: 8 }}>{day ? day.titel : "Nog geen trainingsschema"}</div>
-        <div style={{ display: "inline-block", marginTop: 18, padding: "13px 22px", borderRadius: 999, background: "linear-gradient(135deg,#2c9dfd,#1f5dc4)", fontSize: 15, fontWeight: 600 }}>
-          Open mijn schema
-        </div>
-      </button>
-
-      <button
-        onClick={onFood}
-        style={{ textAlign: "left", border: 0, cursor: "pointer", borderRadius: 20, padding: 24, color: "#fff", background: "#000 url(/background-dark-chevron.png) right center/cover no-repeat" }}
-      >
-        <div style={{ fontSize: 10.5, letterSpacing: ".16em", textTransform: "uppercase", color: "#2c9dfd" }}>Vandaag</div>
-        <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 30, marginTop: 10, lineHeight: 1.05 }}>Voeding registreren</div>
-        <div style={{ fontSize: 14, color: "#c7c9cc", marginTop: 8 }}>{foodMeta}</div>
-        <div style={{ height: 8, borderRadius: 999, background: "rgba(255,255,255,.16)", marginTop: 14, overflow: "hidden" }}>
-          <div style={{ height: "100%", borderRadius: 999, width: `${foodPct}%`, background: "linear-gradient(90deg,#2c9dfd,#1f5dc4)" }} />
-        </div>
-        <div style={{ display: "inline-block", marginTop: 18, padding: "13px 22px", borderRadius: 999, background: "linear-gradient(135deg,#2c9dfd,#1f5dc4)", fontSize: 15, fontWeight: 600 }}>
-          Foto, barcode of zoeken
-        </div>
-      </button>
+      <ChoiceCard onClick={onTrain} eyebrow="Vandaag" title="Trainen" meta={day ? day.titel : "Nog geen trainingsschema"} />
+      <ChoiceCard onClick={onFood} eyebrow="Vandaag" title="Voeding registreren" meta={foodMeta} bar={foodPct} />
+      <ChoiceCard onClick={onMeting} eyebrow="Vandaag" title="Metingen bijhouden" meta={measMeta} />
     </div>
   );
 }

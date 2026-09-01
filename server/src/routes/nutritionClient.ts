@@ -3,8 +3,9 @@ import { z } from "zod";
 import { prisma } from "../db";
 import { requireClient } from "../middleware/auth";
 import { lookupBarcode, searchFood } from "../lib/openFoodFacts";
-import { recognizeFoodPhoto } from "../lib/nutritionAi";
+import { recognizeFoodPhoto, recognizeFoodText } from "../lib/nutritionAi";
 import { deriveGrams } from "../lib/nutrition";
+import { isoAdd, isoToday } from "../lib/date";
 
 const router = Router();
 router.use(requireClient);
@@ -48,7 +49,7 @@ const entryInput = z.object({
   carbs: z.number().min(0),
   protein: z.number().min(0),
   fat: z.number().min(0),
-  bron: z.enum(["open-food-facts", "basislijst", "foto-herkenning", "handmatig"]),
+  bron: z.enum(["open-food-facts", "basislijst", "foto-herkenning", "spraak", "handmatig"]),
 });
 
 router.post("/nutrition/entries", async (req, res) => {
@@ -124,6 +125,48 @@ router.post("/nutrition/photo", async (req, res) => {
     return;
   }
   const result = await recognizeFoodPhoto(parsed.data.imageBase64);
+  if ("error" in result) {
+    res.status(422).json(result);
+    return;
+  }
+  res.json(result);
+});
+
+// The last (up to) 8 prior days that have at least one entry, so the client
+// can copy a previous day's log instead of re-entering everything by hand.
+router.get("/nutrition/recent-days", async (req, res) => {
+  const before = String(req.query.before || isoToday());
+  if (!ISO_DATE.test(before)) {
+    res.status(400).json({ error: "Ongeldige datum." });
+    return;
+  }
+  const since = isoAdd(before, -30);
+  const rows = await prisma.foodEntry.findMany({
+    where: { clientId: req.clientId!, dateIso: { gte: since, lt: before } },
+    orderBy: [{ dateIso: "desc" }, { createdAt: "asc" }],
+  });
+  const byDay = new Map<string, typeof rows>();
+  rows.forEach((r) => {
+    const arr = byDay.get(r.dateIso) || [];
+    arr.push(r);
+    byDay.set(r.dateIso, arr);
+  });
+  const days = Array.from(byDay.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .slice(0, 8)
+    .map(([dateIso, entries]) => ({ dateIso, entries }));
+  res.json({ days });
+});
+
+const voiceInput = z.object({ text: z.string().min(2).max(500) });
+
+router.post("/nutrition/voice", async (req, res) => {
+  const parsed = voiceInput.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Geen tekst ontvangen." });
+    return;
+  }
+  const result = await recognizeFoodText(parsed.data.text);
   if ("error" in result) {
     res.status(422).json(result);
     return;

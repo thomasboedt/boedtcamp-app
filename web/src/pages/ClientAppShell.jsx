@@ -6,6 +6,7 @@ import Home from "../components/client/Home.jsx";
 import Workout from "../components/client/Workout.jsx";
 import Done from "../components/client/Done.jsx";
 import FoodApp from "../components/client/food/FoodApp.jsx";
+import Measurements from "../components/client/Measurements.jsx";
 
 export default function ClientAppShell() {
   const navigate = useNavigate();
@@ -94,7 +95,13 @@ export default function ClientAppShell() {
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 0 40px" }}>
         {screen === "kies" && (
-          <Choice client={client} day={days.find((d) => d.id === dayId) || days[0]} onTrain={() => setScreen("home")} onFood={() => setScreen("food")} />
+          <Choice
+            client={client}
+            day={days.find((d) => d.id === dayId) || days[0]}
+            onTrain={() => setScreen("home")}
+            onFood={() => setScreen("food")}
+            onMeting={() => setScreen("meting")}
+          />
         )}
         {screen === "home" && (
           <Home
@@ -114,6 +121,7 @@ export default function ClientAppShell() {
           <Done summary={doneSummary} sessionId={session?.id} onHome={goHome} />
         )}
         {screen === "food" && <FoodApp onBack={goKies} />}
+        {screen === "meting" && <Measurements onBack={goKies} />}
       </div>
     </div>
   );

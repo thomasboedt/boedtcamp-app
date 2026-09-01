@@ -6,7 +6,7 @@ import { BLOCK_OPTIONS, GOALS, goalBlock, rowMinutes } from "../../lib/schedule.
 
 const BLOCK_TAG = { warmup: "W", main: "M", cooldown: "C" };
 
-export default function ProgramEditor({ client }) {
+export default function ProgramEditor({ client, clients }) {
   const [days, setDays] = useState([]);
   const [dayId, setDayId] = useState(null);
   const [savedMsg, setSavedMsg] = useState("");
@@ -71,6 +71,7 @@ export default function ProgramEditor({ client }) {
           <DaySettings day={day} onPatch={patchDay} onRemove={removeDay} canRemove={days.length > 1} />
           {day.rowing && <RowingPanel day={day} onPatch={patchDay} />}
           <ExerciseTable day={day} savedMsg={savedMsg} flash={flash} onDayChanged={() => reload(dayId)} />
+          <CopyToClientPanel day={day} clients={clients} currentClientId={client.id} flash={flash} />
         </>
       )}
     </>
@@ -314,6 +315,42 @@ function QuickAdd({ dayId, onAdded }) {
       <input value={naam} onChange={(e) => setNaam(e.target.value)} style={{ height: 44, minWidth: 260, padding: "0 12px", border: "1.5px solid #e8ebee", borderRadius: 10, fontSize: 14, color: "#000", outline: "none" }} placeholder="Naam van de oefening" />
       <Button variant="dark" size="md" onClick={add} disabled={busy}>+ Toevoegen aan deze training</Button>
       <div style={{ fontSize: 12.5, color: "#8b8f94", flex: 1, minWidth: 220 }}>Start met 3 sets en de standaardwaarden — daarna pas je sets, herhalingen, gewicht en rust in de rij aan.</div>
+    </div>
+  );
+}
+
+function CopyToClientPanel({ day, clients, currentClientId, flash }) {
+  const [busyId, setBusyId] = useState(null);
+  const others = (clients || []).filter((c) => c.id !== currentClientId);
+
+  async function copyTo(target) {
+    setBusyId(target.id);
+    try {
+      await api.copyDayToClient(day.id, target.id);
+      flash(`“${day.titel}” gekopieerd naar ${target.naam}`);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  if (!others.length) return null;
+
+  return (
+    <div style={{ background: "#fff", border: "1px solid #e8ebee", borderRadius: 16, padding: "22px 24px", marginTop: 16, boxShadow: "0 1px 2px rgba(10,14,20,.05)" }}>
+      <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 19, color: "#000" }}>Kopiëren naar een andere klant</div>
+      <div style={{ fontSize: 12.5, color: "#8b8f94", marginTop: 2 }}>Zet “{day.titel}” — met alle oefeningen — als nieuwe trainingsdag bij een andere klant.</div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+        {others.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => copyTo(c)}
+            disabled={busyId === c.id}
+            style={{ padding: "10px 16px", border: "1.5px solid #e8ebee", background: "#fff", borderRadius: 999, fontSize: 13, color: "#454e58", cursor: busyId === c.id ? "default" : "pointer" }}
+          >
+            {busyId === c.id ? "Bezig…" : `→ ${c.naam}`}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
