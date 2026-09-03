@@ -135,9 +135,14 @@ router.post("/items/:itemId/move", async (req, res) => {
     res.json({ ok: true });
     return;
   }
+  // The (dayId, volgorde) unique index isn't deferrable, so swapping the two
+  // values directly in one transaction trips it: the first update collides
+  // with the row that still holds its target value until *its* update runs.
+  // Routing through a temporary out-of-range value avoids the collision.
   await prisma.$transaction([
-    prisma.programItem.update({ where: { id: item.id }, data: { volgorde: neighbor.volgorde } }),
+    prisma.programItem.update({ where: { id: item.id }, data: { volgorde: -1 } }),
     prisma.programItem.update({ where: { id: neighbor.id }, data: { volgorde: item.volgorde } }),
+    prisma.programItem.update({ where: { id: item.id }, data: { volgorde: neighbor.volgorde } }),
   ]);
   res.json({ ok: true });
 });
