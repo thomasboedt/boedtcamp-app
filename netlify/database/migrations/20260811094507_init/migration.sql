@@ -1,5 +1,9 @@
+-- Idempotent: the production database already has this schema (created via
+-- Prisma before Netlify Database migrations were wired up), so every statement
+-- is guarded to make this a no-op there while still creating it on fresh databases.
+
 -- CreateTable
-CREATE TABLE "Trainer" (
+CREATE TABLE IF NOT EXISTS "Trainer" (
     "id" TEXT NOT NULL,
     "username" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
@@ -9,7 +13,7 @@ CREATE TABLE "Trainer" (
 );
 
 -- CreateTable
-CREATE TABLE "Client" (
+CREATE TABLE IF NOT EXISTS "Client" (
     "id" TEXT NOT NULL,
     "naam" TEXT NOT NULL,
     "geboortejaar" INTEGER,
@@ -25,7 +29,7 @@ CREATE TABLE "Client" (
 );
 
 -- CreateTable
-CREATE TABLE "ProgramDay" (
+CREATE TABLE IF NOT EXISTS "ProgramDay" (
     "id" TEXT NOT NULL,
     "clientId" TEXT NOT NULL,
     "volgorde" INTEGER NOT NULL,
@@ -41,7 +45,7 @@ CREATE TABLE "ProgramDay" (
 );
 
 -- CreateTable
-CREATE TABLE "ProgramItem" (
+CREATE TABLE IF NOT EXISTS "ProgramItem" (
     "id" TEXT NOT NULL,
     "dayId" TEXT NOT NULL,
     "volgorde" INTEGER NOT NULL,
@@ -62,7 +66,7 @@ CREATE TABLE "ProgramItem" (
 );
 
 -- CreateTable
-CREATE TABLE "Session" (
+CREATE TABLE IF NOT EXISTS "Session" (
     "id" TEXT NOT NULL,
     "clientId" TEXT NOT NULL,
     "dayId" TEXT NOT NULL,
@@ -77,7 +81,7 @@ CREATE TABLE "Session" (
 );
 
 -- CreateTable
-CREATE TABLE "SetLog" (
+CREATE TABLE IF NOT EXISTS "SetLog" (
     "id" TEXT NOT NULL,
     "sessionId" TEXT NOT NULL,
     "programItemId" TEXT,
@@ -94,7 +98,7 @@ CREATE TABLE "SetLog" (
 );
 
 -- CreateTable
-CREATE TABLE "LibraryExercise" (
+CREATE TABLE IF NOT EXISTS "LibraryExercise" (
     "id" TEXT NOT NULL,
     "naam" TEXT NOT NULL,
     "primaireSpier" TEXT NOT NULL,
@@ -110,58 +114,82 @@ CREATE TABLE "LibraryExercise" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Trainer_username_key" ON "Trainer"("username");
+CREATE UNIQUE INDEX IF NOT EXISTS "Trainer_username_key" ON "Trainer"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Client_pinHash_key" ON "Client"("pinHash");
+CREATE UNIQUE INDEX IF NOT EXISTS "Client_pinHash_key" ON "Client"("pinHash");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Client_pinLookup_key" ON "Client"("pinLookup");
+CREATE UNIQUE INDEX IF NOT EXISTS "Client_pinLookup_key" ON "Client"("pinLookup");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProgramDay_clientId_volgorde_key" ON "ProgramDay"("clientId", "volgorde");
+CREATE UNIQUE INDEX IF NOT EXISTS "ProgramDay_clientId_volgorde_key" ON "ProgramDay"("clientId", "volgorde");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProgramItem_dayId_volgorde_key" ON "ProgramItem"("dayId", "volgorde");
+CREATE UNIQUE INDEX IF NOT EXISTS "ProgramItem_dayId_volgorde_key" ON "ProgramItem"("dayId", "volgorde");
 
 -- CreateIndex
-CREATE INDEX "Session_clientId_idx" ON "Session"("clientId");
+CREATE INDEX IF NOT EXISTS "Session_clientId_idx" ON "Session"("clientId");
 
 -- CreateIndex
-CREATE INDEX "SetLog_sessionId_idx" ON "SetLog"("sessionId");
+CREATE INDEX IF NOT EXISTS "SetLog_sessionId_idx" ON "SetLog"("sessionId");
 
 -- CreateIndex
-CREATE INDEX "SetLog_programItemId_idx" ON "SetLog"("programItemId");
+CREATE INDEX IF NOT EXISTS "SetLog_programItemId_idx" ON "SetLog"("programItemId");
 
 -- CreateIndex
-CREATE INDEX "SetLog_oefeningNaam_idx" ON "SetLog"("oefeningNaam");
+CREATE INDEX IF NOT EXISTS "SetLog_oefeningNaam_idx" ON "SetLog"("oefeningNaam");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SetLog_sessionId_oefeningNaam_setNr_key" ON "SetLog"("sessionId", "oefeningNaam", "setNr");
+CREATE UNIQUE INDEX IF NOT EXISTS "SetLog_sessionId_oefeningNaam_setNr_key" ON "SetLog"("sessionId", "oefeningNaam", "setNr");
 
 -- CreateIndex
-CREATE INDEX "LibraryExercise_primaireSpier_idx" ON "LibraryExercise"("primaireSpier");
+CREATE INDEX IF NOT EXISTS "LibraryExercise_primaireSpier_idx" ON "LibraryExercise"("primaireSpier");
 
 -- CreateIndex
-CREATE INDEX "LibraryExercise_doel_idx" ON "LibraryExercise"("doel");
+CREATE INDEX IF NOT EXISTS "LibraryExercise_doel_idx" ON "LibraryExercise"("doel");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "LibraryExercise_bron_bronId_key" ON "LibraryExercise"("bron", "bronId");
+CREATE UNIQUE INDEX IF NOT EXISTS "LibraryExercise_bron_bronId_key" ON "LibraryExercise"("bron", "bronId");
 
 -- AddForeignKey
-ALTER TABLE "ProgramDay" ADD CONSTRAINT "ProgramDay_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ProgramDay_clientId_fkey') THEN
+    ALTER TABLE "ProgramDay" ADD CONSTRAINT "ProgramDay_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "ProgramItem" ADD CONSTRAINT "ProgramItem_dayId_fkey" FOREIGN KEY ("dayId") REFERENCES "ProgramDay"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ProgramItem_dayId_fkey') THEN
+    ALTER TABLE "ProgramItem" ADD CONSTRAINT "ProgramItem_dayId_fkey" FOREIGN KEY ("dayId") REFERENCES "ProgramDay"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Session" ADD CONSTRAINT "Session_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Session_clientId_fkey') THEN
+    ALTER TABLE "Session" ADD CONSTRAINT "Session_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "Session" ADD CONSTRAINT "Session_dayId_fkey" FOREIGN KEY ("dayId") REFERENCES "ProgramDay"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Session_dayId_fkey') THEN
+    ALTER TABLE "Session" ADD CONSTRAINT "Session_dayId_fkey" FOREIGN KEY ("dayId") REFERENCES "ProgramDay"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SetLog" ADD CONSTRAINT "SetLog_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'SetLog_sessionId_fkey') THEN
+    ALTER TABLE "SetLog" ADD CONSTRAINT "SetLog_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  END IF;
+END $$;
 
 -- AddForeignKey
-ALTER TABLE "SetLog" ADD CONSTRAINT "SetLog_programItemId_fkey" FOREIGN KEY ("programItemId") REFERENCES "ProgramItem"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'SetLog_programItemId_fkey') THEN
+    ALTER TABLE "SetLog" ADD CONSTRAINT "SetLog_programItemId_fkey" FOREIGN KEY ("programItemId") REFERENCES "ProgramItem"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END $$;
