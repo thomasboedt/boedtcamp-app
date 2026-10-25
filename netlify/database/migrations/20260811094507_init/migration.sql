@@ -1,3 +1,10 @@
+-- Guarded so this is a no-op on databases where this schema already exists
+-- (created earlier outside Netlify's migration tracking), while still
+-- applying normally on a fresh database.
+DO $$
+BEGIN
+IF to_regclass('public."Trainer"') IS NULL THEN
+
 -- CreateTable
 CREATE TABLE "Trainer" (
     "id" TEXT NOT NULL,
@@ -165,3 +172,7 @@ ALTER TABLE "SetLog" ADD CONSTRAINT "SetLog_sessionId_fkey" FOREIGN KEY ("sessio
 
 -- AddForeignKey
 ALTER TABLE "SetLog" ADD CONSTRAINT "SetLog_programItemId_fkey" FOREIGN KEY ("programItemId") REFERENCES "ProgramItem"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+END IF;
+END
+$$;
