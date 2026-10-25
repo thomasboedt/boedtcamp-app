@@ -20,6 +20,16 @@ const SCORE_FIELDS = [
   { key: "energy", label: "Energieniveau", low: "uitgeput", high: "vol energie" },
 ];
 
+const CHART_METRICS = [
+  ...BODY_FIELDS,
+  ...GIRTH_FIELDS,
+  { key: "bmi", label: "BMI", unit: "", decimals: 1 },
+  { key: "whr", label: "Middel / heup", unit: "", decimals: 2 },
+  { key: "whtr", label: "Middel / lengte", unit: "", decimals: 2 },
+  ...SCORE_FIELDS.map((f) => ({ ...f, unit: "/ 10" })),
+];
+const CHART_POINTS = 10;
+
 const zoneColor = { green: "#2f9e63", orange: "#d8862a", red: "#c9463c", neutral: "#8b8f94" };
 
 function zone(metric, v) {
@@ -51,6 +61,13 @@ export default function Measurements({ onBack }) {
   const [form, setForm] = useState({});
   const [calc, setCalc] = useState({ bmi: 0, whr: 0, whtr: 0 });
   const [savedMsg, setSavedMsg] = useState("");
+  const [history, setHistory] = useState([]);
+
+  function loadHistory() {
+    api.measurementHistory().then((res) => setHistory(res.rows || []));
+  }
+
+  useEffect(loadHistory, []);
 
   useEffect(() => {
     let active = true;
@@ -81,14 +98,9 @@ export default function Measurements({ onBack }) {
     const res = await api.saveMeasurement({ dateIso: date, [field]: value });
     setForm(res.measurement);
     setCalc(res.calc);
+    loadHistory();
     flash();
   }
-
-  const cards = [
-    { key: "bmi", label: "BMI", value: calc.bmi ? String(calc.bmi).replace(".", ",") : "—", fallback: "vul gewicht en lengte in" },
-    { key: "whr", label: "Middel / heup", value: calc.whr ? calc.whr.toFixed(2).replace(".", ",") : "—", fallback: "vul middel en heup in" },
-    { key: "whtr", label: "Middel / lengte", value: calc.whtr ? calc.whtr.toFixed(2).replace(".", ",") : "—", fallback: "vul middel en lengte in" },
-  ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
@@ -117,19 +129,7 @@ export default function Measurements({ onBack }) {
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 28px", background: "#f4f6f8" }}>
         <div style={{ fontSize: 12.5, color: "#1f5dc4", fontWeight: 600, minHeight: 18, textAlign: "right" }}>{savedMsg}</div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-          {cards.map((c) => {
-            const z = zone(c.key, calc[c.key]);
-            return (
-              <div key={c.key} style={{ background: "#000", borderRadius: 14, padding: "14px 12px", color: "#fff" }}>
-                <div style={{ fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", color: "#2c9dfd" }}>{c.label}</div>
-                <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 22, marginTop: 6, color: z.color === "neutral" ? "#fff" : zoneColor[z.color] }}>{c.value}</div>
-                <div style={{ fontSize: 10.5, color: "#8b8f94", marginTop: 2 }}>{z.label || c.fallback}</div>
-              </div>
-            );
-          })}
-        </div>
-        <div style={{ fontSize: 11.5, color: "#8b8f94", marginTop: 8, padding: "0 2px" }}>Deze drie worden automatisch berekend uit je gewicht, lengte en omtrek.</div>
+        <TrendChart history={history} />
 
         <FieldGroup title="Lichaamssamenstelling" fields={BODY_FIELDS} form={form} onSave={save} />
         <FieldGroup title="Omtrek" fields={GIRTH_FIELDS} form={form} onSave={save} />
@@ -195,6 +195,118 @@ function FieldGroup({ title, fields, form, onSave }) {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function fmt(v, decimals) {
+  const d = decimals ?? (Number.isInteger(v) ? 0 : 1);
+  return v.toFixed(d).replace(".", ",");
+}
+
+function shortDate(iso) {
+  const d = new Date(iso + "T12:00:00");
+  return d.toLocaleDateString("nl-BE", { day: "numeric", month: "short" }).replace(".", "");
+}
+
+// Line chart of the last registered values for one metric, picked from a dropdown.
+function TrendChart({ history }) {
+  const [metricKey, setMetricKey] = useState("weight");
+  const metric = CHART_METRICS.find((m) => m.key === metricKey);
+  const points = history
+    .filter((r) => r[metricKey] !== null && r[metricKey] !== undefined && r[metricKey] !== 0)
+    .slice(-CHART_POINTS)
+    .map((r) => ({ iso: r.dateIso, val: r[metricKey] }));
+
+  const last = points[points.length - 1];
+  const prev = points[points.length - 2];
+  const diff = last && prev ? last.val - prev.val : null;
+  const z = last && ["bmi", "whr", "whtr"].includes(metricKey) ? zone(metricKey, last.val) : null;
+
+  const W = 320;
+  const H = 150;
+  const padX = 18;
+  const padTop = 22;
+  const padBottom = 24;
+  const vals = points.map((p) => p.val);
+  const min = vals.length ? Math.min(...vals) : 0;
+  const max = vals.length ? Math.max(...vals) : 1;
+  const range = max - min || 1;
+  const x = (i) => (points.length === 1 ? W / 2 : padX + (i * (W - padX * 2)) / (points.length - 1));
+  const y = (v) => (max === min ? (padTop + H - padBottom) / 2 : padTop + ((max - v) / range) * (H - padTop - padBottom));
+  const line = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.val).toFixed(1)}`).join(" ");
+  const area = points.length > 1 ? `${line} L${x(points.length - 1).toFixed(1)},${H - padBottom} L${x(0).toFixed(1)},${H - padBottom} Z` : "";
+
+  return (
+    <div style={{ background: "#000", borderRadius: 16, padding: "16px 16px 12px", color: "#fff" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <div style={{ fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", color: "#2c9dfd" }}>Verloop</div>
+        <select
+          value={metricKey}
+          onChange={(e) => setMetricKey(e.target.value)}
+          style={{ background: "#16191d", color: "#fff", border: "1px solid #2a2f35", borderRadius: 10, padding: "7px 10px", fontSize: 13, fontWeight: 600, outline: "none", cursor: "pointer" }}
+        >
+          {CHART_METRICS.map((m) => (
+            <option key={m.key} value={m.key}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8, minHeight: 30 }}>
+        <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 24, color: z && z.color !== "neutral" ? zoneColor[z.color] : "#fff" }}>
+          {last ? fmt(last.val, metric.decimals) : "—"}
+        </div>
+        {last && metric.unit && <div style={{ fontSize: 12, color: "#8b8f94" }}>{metric.unit}</div>}
+        {diff !== null && diff !== 0 && (
+          <div style={{ fontSize: 12, color: "#8b8f94" }}>
+            {diff > 0 ? "▲ +" : "▼ "}
+            {fmt(diff, metric.decimals)} t.o.v. vorige
+          </div>
+        )}
+      </div>
+      {z && z.label && <div style={{ fontSize: 11, color: "#8b8f94" }}>{z.label}</div>}
+
+      {points.length === 0 ? (
+        <div style={{ height: H, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12.5, color: "#8b8f94", textAlign: "center" }}>
+          Nog geen metingen voor {metric.label.toLowerCase()}.
+        </div>
+      ) : (
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block", marginTop: 4 }}>
+          <defs>
+            <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#2c9dfd" stopOpacity=".35" />
+              <stop offset="100%" stopColor="#2c9dfd" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <line x1={padX} x2={W - padX} y1={H - padBottom} y2={H - padBottom} stroke="#2a2f35" strokeWidth="1" />
+          {area && <path d={area} fill="url(#trendFill)" />}
+          {points.length > 1 && <path d={line} fill="none" stroke="#2c9dfd" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />}
+          {points.map((p, i) => {
+            const isLast = i === points.length - 1;
+            const showLabel = isLast || points.length <= 5 || i % 2 === (points.length - 1) % 2;
+            return (
+              <g key={p.iso}>
+                <circle cx={x(i)} cy={y(p.val)} r={isLast ? 5 : 3.5} fill={isLast ? "#2c9dfd" : "#000"} stroke="#2c9dfd" strokeWidth="2" />
+                {showLabel && (
+                  <text x={x(i)} y={y(p.val) - 9} textAnchor="middle" fontSize="10" fontWeight="600" fill={isLast ? "#fff" : "#8b8f94"}>
+                    {fmt(p.val, metric.decimals)}
+                  </text>
+                )}
+                {showLabel && (
+                  <text x={x(i)} y={H - 8} textAnchor="middle" fontSize="9.5" fill="#8b8f94">
+                    {shortDate(p.iso)}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      )}
+      <div style={{ fontSize: 11, color: "#8b8f94", marginTop: 4 }}>
+        Laatste {CHART_POINTS} registraties · BMI en verhoudingen worden automatisch berekend.
       </div>
     </div>
   );

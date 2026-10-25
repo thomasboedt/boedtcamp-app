@@ -47,6 +47,31 @@ router.get("/measurements/latest", async (req, res) => {
   res.json(withCalc(latest));
 });
 
+// The client's most recent registrations (oldest first), each with its
+// derived BMI/WHR/WHtR, feeding the "verloop" chart on the metingen screen.
+router.get("/measurements/history", async (req, res) => {
+  const rows = await prisma.measurement.findMany({
+    where: { clientId: req.clientId! },
+    orderBy: { dateIso: "desc" },
+    take: 60,
+  });
+  // Also the latest height from before this window, in case the oldest rows lack one.
+  const earlier = rows.length
+    ? await prisma.measurement.findFirst({
+        where: { clientId: req.clientId!, dateIso: { lt: rows[rows.length - 1].dateIso }, height: { not: null } },
+        orderBy: { dateIso: "desc" },
+      })
+    : null;
+  // Height is usually only entered once, so carry the last known height
+  // forward when deriving BMI/WHtR for later days that didn't re-enter it.
+  let lastHeight: number | null = earlier?.height ?? null;
+  const withDerived = rows.reverse().map((r) => {
+    if (r.height) lastHeight = r.height;
+    return { ...r, ...deriveMeasCalc({ ...r, height: r.height || lastHeight }) };
+  });
+  res.json({ rows: withDerived });
+});
+
 const measurementInput = z.object({
   dateIso: z.string().regex(ISO_DATE),
   weight: z.number().positive().max(400).optional().nullable(),
