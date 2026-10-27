@@ -31,7 +31,7 @@ export default function Opvolging({ clientId }) {
 
   if (loading || !dashboard) return <div style={{ marginTop: 26, color: "#8b8f94" }}>Laden…</div>;
 
-  const maxBar = Math.max(1, ...chartData.map((b) => b.val));
+  const sortedExercises = [...chartExercises].sort((a, b) => a.localeCompare(b, "nl"));
   const maxVol = Math.max(1, ...dashboard.volumeRows.map((v) => v.val));
 
   return (
@@ -53,45 +53,23 @@ export default function Opvolging({ clientId }) {
               <div style={{ fontFamily: "'Exo',sans-serif", fontStyle: "italic", fontWeight: 900, fontSize: 19, color: "#000" }}>Gewichtsprogressie</div>
               <div style={{ fontSize: 12.5, color: "#8b8f94", marginTop: 2 }}>Zwaarste set per sessie</div>
             </div>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-              {chartExercises.map((name) => (
-                <button
-                  key={name}
-                  onClick={() => setChartName(name)}
-                  style={{
-                    padding: "7px 14px",
-                    borderRadius: 999,
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    border: "1.5px solid " + (chartName === name ? "#2c9dfd" : "#e8ebee"),
-                    background: chartName === name ? "rgba(44,157,253,.1)" : "#fff",
-                    color: chartName === name ? "#1f5dc4" : "#8b8f94",
-                  }}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
+            {chartExercises.length > 0 && (
+              <select
+                value={chartName || ""}
+                onChange={(e) => setChartName(e.target.value)}
+                aria-label="Kies een oefening"
+                style={{ maxWidth: 260, background: "#fff", color: "#000", border: "1.5px solid #e8ebee", borderRadius: 10, padding: "8px 12px", fontSize: 13, fontWeight: 600, outline: "none", cursor: "pointer" }}
+              >
+                {sortedExercises.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 10, height: 210, marginTop: 24, paddingBottom: 2 }}>
-            {chartData.length === 0 && <div style={{ color: "#c2c8cf", fontSize: 13 }}>Nog geen geschiedenis voor deze oefening.</div>}
-            {chartData.map((b, i) => (
-              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, height: "100%", justifyContent: "flex-end" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#454e58" }}>{fmt(b.val)}</div>
-                <div
-                  style={{
-                    width: "100%",
-                    borderRadius: "8px 8px 3px 3px",
-                    height: Math.round((b.val / maxBar) * 100 * 0.78 + 12) + "%",
-                    background: i === chartData.length - 1 ? "linear-gradient(180deg,#2c9dfd,#1f5dc4)" : "#dde3ea",
-                  }}
-                />
-                <div style={{ fontSize: 11, color: "#8b8f94" }}>{b.label}</div>
-              </div>
-            ))}
-          </div>
+          <ProgressLineChart data={chartData} />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -155,5 +133,59 @@ export default function Opvolging({ clientId }) {
         )}
       </div>
     </>
+  );
+}
+
+// Line chart of the heaviest set per session for the selected exercise.
+function ProgressLineChart({ data }) {
+  if (data.length === 0) {
+    return <div style={{ height: 210, marginTop: 24, display: "flex", alignItems: "center", color: "#c2c8cf", fontSize: 13 }}>Nog geen geschiedenis voor deze oefening.</div>;
+  }
+
+  const W = 560;
+  const H = 220;
+  const padX = 28;
+  const padTop = 28;
+  const padBottom = 30;
+  const vals = data.map((p) => p.val);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = max - min || 1;
+  const x = (i) => (data.length === 1 ? W / 2 : padX + (i * (W - padX * 2)) / (data.length - 1));
+  const y = (v) => (max === min ? (padTop + H - padBottom) / 2 : padTop + ((max - v) / range) * (H - padTop - padBottom));
+  const line = data.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.val).toFixed(1)}`).join(" ");
+  const area = data.length > 1 ? `${line} L${x(data.length - 1).toFixed(1)},${H - padBottom} L${x(0).toFixed(1)},${H - padBottom} Z` : "";
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block", marginTop: 18 }}>
+      <defs>
+        <linearGradient id="progressFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2c9dfd" stopOpacity=".22" />
+          <stop offset="100%" stopColor="#2c9dfd" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <line x1={padX} x2={W - padX} y1={H - padBottom} y2={H - padBottom} stroke="#e8ebee" strokeWidth="1" />
+      {area && <path d={area} fill="url(#progressFill)" />}
+      {data.length > 1 && <path d={line} fill="none" stroke="#2c9dfd" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />}
+      {data.map((p, i) => {
+        const isLast = i === data.length - 1;
+        const showLabel = isLast || data.length <= 8 || i % 2 === (data.length - 1) % 2;
+        return (
+          <g key={i}>
+            <circle cx={x(i)} cy={y(p.val)} r={isLast ? 5.5 : 4} fill={isLast ? "#2c9dfd" : "#fff"} stroke="#2c9dfd" strokeWidth="2" />
+            {showLabel && (
+              <text x={x(i)} y={y(p.val) - 11} textAnchor="middle" fontSize="12" fontWeight="600" fill={isLast ? "#000" : "#454e58"}>
+                {fmt(p.val)}
+              </text>
+            )}
+            {showLabel && (
+              <text x={x(i)} y={H - 10} textAnchor="middle" fontSize="11" fill="#8b8f94">
+                {p.date || p.label}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
   );
 }
