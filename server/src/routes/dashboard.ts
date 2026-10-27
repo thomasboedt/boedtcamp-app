@@ -148,7 +148,6 @@ router.get("/clients/:id/chart-exercises", async (req, res) => {
     where: { unit: "kg", session: { clientId: req.params.id } },
     _count: { oefeningNaam: true },
     orderBy: { _count: { oefeningNaam: "desc" } },
-    take: 6,
   });
   res.json(rows.map((r) => r.oefeningNaam));
 });
@@ -164,10 +163,11 @@ router.get("/clients/:id/progress", async (req, res) => {
     orderBy: { afgerondOp: "asc" },
     include: { setLogs: { where: { oefeningNaam: exercise, unit: "kg" } } },
   });
-  const withLogs = sessions.filter((s) => s.setLogs.length).slice(-8);
+  const withLogs = sessions.filter((s) => s.setLogs.length).slice(-12);
   res.json(
     withLogs.map((s) => ({
       label: s.afgerondOp ? `w${isoWeek(s.afgerondOp)}` : "",
+      date: s.afgerondOp ? s.afgerondOp.toLocaleDateString("nl-BE", { day: "numeric", month: "short" }).replace(".", "") : "",
       val: Math.max(...s.setLogs.map((l) => l.gewichtKg || 0)),
     }))
   );
