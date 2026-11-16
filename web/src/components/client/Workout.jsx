@@ -4,6 +4,7 @@ import { fmt } from "../../lib/styles.js";
 
 const BLOCK_LABEL = { warmup: "Warming up", main: "Main", cooldown: "Cooldown" };
 const BLOCK_ORDER = ["warmup", "main", "cooldown"];
+const MAX_SETS = 10;
 
 function unitOf(ex) {
   return ex.unit || (ex.type === "time" && !ex.doelgewicht ? "sec" : "kg");
@@ -81,8 +82,28 @@ export default function Workout({ session, setSession, onHome, onFinish }) {
   }
 
   function removeSet(ex, s) {
-    setRemoved((r) => ({ ...r, [`${ex.key}:${s.setNr}`]: true }));
     api.deleteSet(session.id, ex.naam, s.setNr).catch(() => {});
+    if (s.setNr > (ex.plannedSets ?? ex.sets.length)) {
+      // Extra set added by the client: drop it entirely instead of hiding it.
+      updateExercise(ex.key, (e) => ({ ...e, sets: e.sets.filter((x) => x.setNr !== s.setNr) }));
+      return;
+    }
+    setRemoved((r) => ({ ...r, [`${ex.key}:${s.setNr}`]: true }));
+  }
+
+  function addSet(ex) {
+    const visible = ex.sets.filter((x) => !removed[`${ex.key}:${x.setNr}`]);
+    const last = visible[visible.length - 1] || ex.sets[ex.sets.length - 1];
+    const setNr = ex.sets.reduce((m, x) => Math.max(m, x.setNr), 0) + 1;
+    const newSet = {
+      setNr,
+      reps: last ? last.reps : ex.target,
+      value: last ? last.value : ex.type === "time" && !ex.doelgewicht ? ex.target : ex.doelgewicht,
+      afgevinkt: false,
+      prevLabel: "extra set",
+    };
+    updateExercise(ex.key, (e) => ({ ...e, sets: [...e.sets, newSet] }));
+    persistSet(ex, newSet, {});
   }
 
   function restoreSets(ex) {
@@ -159,6 +180,7 @@ export default function Workout({ session, setSession, onHome, onFinish }) {
                   onRepsChange={onRepsChange}
                   onToggleDone={toggleDone}
                   onRemoveSet={removeSet}
+                  onAddSet={addSet}
                   onRestoreSets={restoreSets}
                 />
               ))}
@@ -221,7 +243,7 @@ export default function Workout({ session, setSession, onHome, onFinish }) {
   );
 }
 
-function ExerciseCard({ ex, isOpen, onToggleOpen, removed, onValueChange, onRepsChange, onToggleDone, onRemoveSet, onRestoreSets }) {
+function ExerciseCard({ ex, isOpen, onToggleOpen, removed, onValueChange, onRepsChange, onToggleDone, onRemoveSet, onAddSet, onRestoreSets }) {
   const unit = unitOf(ex);
   const visibleSets = ex.sets.filter((s) => !removed[`${ex.key}:${s.setNr}`]);
   const doneCount = visibleSets.filter((s) => s.afgevinkt).length;
@@ -356,6 +378,28 @@ function ExerciseCard({ ex, isOpen, onToggleOpen, removed, onValueChange, onReps
               </div>
             ))}
           </div>
+
+          {!isMin && (
+            <button
+              onClick={() => onAddSet(ex)}
+              disabled={visibleSets.length >= MAX_SETS}
+              style={{
+                marginTop: 12,
+                width: "100%",
+                height: 40,
+                border: "1.5px dashed #c2c8cf",
+                background: "#fff",
+                color: "#1f5dc4",
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: visibleSets.length >= MAX_SETS ? "default" : "pointer",
+                opacity: visibleSets.length >= MAX_SETS ? 0.4 : 1,
+              }}
+            >
+              + Set toevoegen
+            </button>
+          )}
 
           {anyRemoved && (
             <button
