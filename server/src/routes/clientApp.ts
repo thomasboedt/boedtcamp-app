@@ -128,8 +128,14 @@ router.get("/days/:dayId/exercises", async (req, res) => {
 
   const withHistory = await Promise.all(
     exercises.map(async (ex) => {
+      // Clients can add extra sets on top of the planned number during a
+      // session; those only exist as set logs, so include them here too.
+      const extraMax = (openSession?.setLogs || [])
+        .filter((l) => l.oefeningNaam === ex.naam)
+        .reduce((m, l) => Math.max(m, l.setNr), 0);
+      const setCount = Math.max(ex.sets, extraMax);
       const sets = await Promise.all(
-        Array.from({ length: ex.sets }).map(async (_, i) => {
+        Array.from({ length: setCount }).map(async (_, i) => {
           const setNr = i + 1;
           const prevLog = await prisma.setLog.findFirst({
             where: {
@@ -153,7 +159,7 @@ router.get("/days/:dayId/exercises", async (req, res) => {
           };
         })
       );
-      return { ...ex, sessionId: openSession?.id || null, sets };
+      return { ...ex, plannedSets: ex.sets, sessionId: openSession?.id || null, sets };
     })
   );
 
