@@ -93,4 +93,6 @@ export const api = {
     request(`/client/sessions/${sessionId}/sets/${encodeURIComponent(oefeningNaam)}/${setNr}`, { method: "DELETE" }),
   completeSession: (sessionId, data) => request(`/client/sessions/${sessionId}/complete`, { method: "POST", body: data }),
   clientHistory: () => request("/client/history"),
+  strengthExercises: () => request("/client/progress/exercises"),
+  strengthProgress: (exercise) => request(`/client/progress?exercise=${encodeURIComponent(exercise)}`),
 };

@@ -7,6 +7,7 @@ import Workout from "../components/client/Workout.jsx";
 import Done from "../components/client/Done.jsx";
 import FoodApp from "../components/client/food/FoodApp.jsx";
 import Measurements from "../components/client/Measurements.jsx";
+import Progress from "../components/client/Progress.jsx";
 
 export default function ClientAppShell() {
   const navigate = useNavigate();
@@ -101,6 +102,7 @@ export default function ClientAppShell() {
             onTrain={() => setScreen("home")}
             onFood={() => setScreen("food")}
             onMeting={() => setScreen("meting")}
+            onProgress={() => setScreen("progressie")}
           />
         )}
         {screen === "home" && (
@@ -122,6 +124,7 @@ export default function ClientAppShell() {
         )}
         {screen === "food" && <FoodApp onBack={goKies} />}
         {screen === "meting" && <Measurements onBack={goKies} />}
+        {screen === "progressie" && <Progress onBack={goKies} />}
       </div>
     </div>
   );
