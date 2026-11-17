@@ -68,7 +68,7 @@ function ChoiceCard({ onClick, eyebrow, title, meta, bar }) {
   );
 }
 
-export default function Choice({ client, day, onTrain, onFood, onMeting }) {
+export default function Choice({ client, day, onTrain, onFood, onMeting, onProgress }) {
   const [foodPct, setFoodPct] = useState(0);
   const [foodMeta, setFoodMeta] = useState("Foto, barcode, spraak of zoeken");
   const [measMeta, setMeasMeta] = useState("Gewicht, omtrek, BMI en hoe je je voelt");
@@ -113,6 +113,7 @@ export default function Choice({ client, day, onTrain, onFood, onMeting }) {
       <ChoiceCard onClick={onTrain} eyebrow="Vandaag" title="Trainen" meta={day ? day.titel : "Nog geen trainingsschema"} />
       <ChoiceCard onClick={onFood} eyebrow="Vandaag" title="Voeding registreren" meta={foodMeta} bar={foodPct} />
       <ChoiceCard onClick={onMeting} eyebrow="Vandaag" title="Metingen bijhouden" meta={measMeta} />
+      <ChoiceCard onClick={onProgress} eyebrow="Overzicht" title="Progressie bekijken" meta="Kracht en gezondheid doorheen de tijd" />
     </div>
   );
 }

@@ -292,4 +292,41 @@ router.get("/history", async (req, res) => {
   );
 });
 
+// Exercises this client has ever logged a real weight for (kg > 0), most
+// trained first — feeds the dropdown on the "Progressie · Kracht" screen.
+router.get("/progress/exercises", async (req, res) => {
+  const rows = await prisma.setLog.groupBy({
+    by: ["oefeningNaam"],
+    where: { unit: "kg", gewichtKg: { gt: 0 }, session: { clientId: req.clientId, afgerondOp: { not: null } } },
+    _count: { oefeningNaam: true },
+    orderBy: { _count: { oefeningNaam: "desc" } },
+  });
+  res.json(rows.map((r) => r.oefeningNaam));
+});
+
+// Per completed session (oldest first): the heaviest weight used for one
+// exercise, plus the reps done at that weight.
+router.get("/progress", async (req, res) => {
+  const exercise = String(req.query.exercise || "");
+  if (!exercise) {
+    res.json({ rows: [] });
+    return;
+  }
+  const sessions = await prisma.session.findMany({
+    where: { clientId: req.clientId, afgerondOp: { not: null } },
+    orderBy: { afgerondOp: "asc" },
+    include: { setLogs: { where: { oefeningNaam: exercise, unit: "kg", gewichtKg: { gt: 0 } } } },
+  });
+  const rows = sessions
+    .filter((s) => s.setLogs.length)
+    .slice(-60)
+    .map((s) => {
+      const best = s.setLogs.reduce((a, b) => ((b.gewichtKg || 0) > (a.gewichtKg || 0) ? b : a));
+      const d = s.afgerondOp!;
+      const dateIso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return { id: s.id, dateIso, val: best.gewichtKg || 0, reps: best.reps ?? null, sets: s.setLogs.length };
+    });
+  res.json({ rows });
+});
+
 export default router;
